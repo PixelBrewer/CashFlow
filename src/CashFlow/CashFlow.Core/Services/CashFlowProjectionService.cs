@@ -1,3 +1,5 @@
+using CashFlow.Core.Enums;
+
 namespace CashFlow.Core.Services;
 
 using Models;
@@ -24,23 +26,25 @@ public class CashFlowProjectionService : ICashFlowProjectionService
 
         foreach (var transaction in orderedTransactions)
         {
-            Val
+            ValidateTransaction(transaction);
+            runningBalance = transaction.Type switch
+            {
+                TransactionType.Income => runningBalance + transaction.Amount,
+
+                TransactionType.Expense => runningBalance - transaction.Amount,
+
+                _ => throw new ArgumentOutOfRangeException(nameof(transaction.Type), transaction.Type,
+                    "Invalid transaction type")
+            };
+            
+            lowestBalance = Math.Min(lowestBalance, runningBalance);
+            
+            entries.Add(new CashFlowEntry
+            {
+                Transaction = transaction,
+                BalanceAfterTransaction = runningBalance
+            });
         }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         
         return new CashFlowProjection
         {
