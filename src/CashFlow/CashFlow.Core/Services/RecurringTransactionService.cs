@@ -34,11 +34,11 @@ public class RecurringTransactionService : IRecurringTransactionService
         {
             var daysInMonth = DateTime.DaysInMonth(currentMonth.Year, currentMonth.Month);
             var day = Math.Min(recurrenceDay, daysInMonth);
-            var ocurrenceDate = new DateOnly(currentMonth.Year, currentMonth.Month, day);
+            var occurrenceDate = new DateOnly(currentMonth.Year, currentMonth.Month, day);
             if (
-                ocurrenceDate >= transaction.StartDate
-                && ocurrenceDate >= from
-                && ocurrenceDate <= through
+                occurrenceDate >= transaction.StartDate
+                && occurrenceDate >= from
+                && occurrenceDate <= through
             )
             {
                 results.Add(
@@ -46,7 +46,7 @@ public class RecurringTransactionService : IRecurringTransactionService
                     {
                         Id = Guid.NewGuid(),
                         Description = transaction.Description,
-                        Date = ocurrenceDate,
+                        Date = occurrenceDate,
                         Amount = transaction.Amount,
                         Type = transaction.Type,
                     }
