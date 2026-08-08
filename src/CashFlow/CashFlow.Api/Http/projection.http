@@ -1,0 +1,31 @@
+### Generate cash-flow projection
+
+POST http://localhost:5220/api/projections
+Content-Type: application/json
+
+{
+  "openingBalance": 3200,
+  "transactions": [
+    {
+      "id": "0c57f5d3-997d-4773-b117-cab197640cee",
+      "description": "Reimbursement",
+      "date": "2026-08-01",
+      "amount": 115,
+      "type": 0
+    },
+    {
+      "id": "d24ec622-d2d1-48cb-843b-07cb17ccd423",
+      "description": "Rent",
+      "date": "2026-08-03",
+      "amount": 1600,
+      "type": 1
+    },
+    {
+      "id": "820f9548-04a3-441b-acb4-366340a73ebe",
+      "description": "Pay Advance",
+      "date": "2026-08-12",
+      "amount": 2500,
+      "type": 0
+    }
+  ]
+}

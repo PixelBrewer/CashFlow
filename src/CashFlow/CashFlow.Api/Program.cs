@@ -1,5 +1,7 @@
 namespace CashFlow.Api;
 
+using CashFlow.Core.Services;
+
 public class Program
 {
     public static void Main(string[] args)
@@ -12,6 +14,9 @@ public class Program
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
 
+        // Register custom services
+        builder.Services.AddScoped<ICashFlowProjectionService, CashFlowProjectionService>();
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -23,7 +28,6 @@ public class Program
         app.UseHttpsRedirection();
 
         app.UseAuthorization();
-
 
         app.MapControllers();
 
