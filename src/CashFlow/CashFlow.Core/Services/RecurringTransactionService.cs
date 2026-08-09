@@ -5,7 +5,7 @@ using CashFlow.Core.Models;
 
 public interface IRecurringTransactionService
 {
-    public IReadOnlyList<ScheduledTransaction> Generate(
+    IReadOnlyList<ScheduledTransaction> Generate(
         RecurringTransaction transaction,
         DateOnly from,
         DateOnly through
@@ -20,40 +20,19 @@ public class RecurringTransactionService : IRecurringTransactionService
         DateOnly through
     )
     {
+        if (from > through)
+        {
+            throw new ArgumentException("The start date cannot be after the end date.");
+        }
+
         var results = new List<ScheduledTransaction>();
 
         var recurrenceDay = transaction.StartDate.Day;
         var occurrenceDate = transaction.StartDate;
-        var currentMonth = new DateOnly(transaction.StartDate.Year, transaction.StartDate.Month, 1);
-
-        if (from > through)
-        {
-            throw new ArgumentException("The start date cannot be after the current date.");
-        }
 
         while (occurrenceDate <= through)
         {
-            if (ocurrenceDate >= from)
-            {
-                results.Add(
-                    new ScheduledTransaction
-                    {
-                        Id = Guid.NewGuid(),
-                        Description = transaction.Description,
-                        Date = ocurrenceDate,
-                        Amount = transacion.Amount,
-                        Type = transaction.Type,
-                    }
-                );
-            }
-            var daysInMonth = DateTime.DaysInMonth(currentMonth.Year, currentMonth.Month);
-            var day = Math.Min(recurrenceDay, daysInMonth);
-            var occurrenceDate = new DateOnly(currentMonth.Year, currentMonth.Month, day);
-            if (
-                occurrenceDate >= transaction.StartDate
-                && occurrenceDate >= from
-                && occurrenceDate <= through
-            )
+            if (occurrenceDate >= from)
             {
                 results.Add(
                     new ScheduledTransaction
@@ -66,8 +45,14 @@ public class RecurringTransactionService : IRecurringTransactionService
                     }
                 );
             }
-            currentMonth = currentMonth.AddMonths(1);
+
+            occurrenceDate = GetNextOccurrence(
+                occurrenceDate,
+                transaction.Frequency,
+                recurrenceDay
+            );
         }
+
         return results;
     }
 
@@ -83,9 +68,24 @@ public class RecurringTransactionService : IRecurringTransactionService
 
             RecurrenceFrequency.Biweekly => current.AddDays(14),
 
-            RecurrenceFrequency.Monthly => current.AddMonths(1),
+            RecurrenceFrequency.Monthly => GetNextMonthlyOccurrence(current, recurrenceDay),
 
-            _ => throw new ArgumentOutOfRangeException(nameof(frequency)),
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(frequency),
+                frequency,
+                "Unsupported recurrence frequency."
+            ),
         };
+    }
+
+    private static DateOnly GetNextMonthlyOccurrence(DateOnly current, int recurrenceDay)
+    {
+        var nextMonth = current.AddMonths(1);
+
+        var daysInMonth = DateTime.DaysInMonth(nextMonth.Year, nextMonth.Month);
+
+        var day = Math.Min(recurrenceDay, daysInMonth);
+
+        return new DateOnly(nextMonth.Year, nextMonth.Month, day);
     }
 }
