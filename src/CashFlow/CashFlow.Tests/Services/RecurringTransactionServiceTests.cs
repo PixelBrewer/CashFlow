@@ -145,4 +145,59 @@ public class RecurringTransactionServiceTests
 
         act.Should().Throw<ArgumentException>();
     }
+
+    [Test]
+    public void Generate_ShouldCreateWeeklyTransactionsWithinRange()
+    {
+        var recurringTransaction = new RecurringTransaction
+        {
+            Id = Guid.NewGuid(),
+            Description = "Weekly Expense",
+            Amount = 50m,
+            Type = TransactionType.Expense,
+            Frequency = RecurrenceFrequency.Weekly,
+            StartDate = new DateOnly(2026, 8, 3),
+        };
+
+        var result = _sut.Generate(
+            recurringTransaction,
+            new DateOnly(2026, 8, 1),
+            new DateOnly(2026, 8, 24)
+        );
+
+        result
+            .Select(x => x.Date)
+            .Should()
+            .Equal(
+                new DateOnly(2026, 8, 3),
+                new DateOnly(2026, 8, 10),
+                new DateOnly(2026, 8, 17),
+                new DateOnly(2026, 8, 24)
+            );
+    }
+
+    [Test]
+    public void Generate_ShouldCreateBiweeklyTransactionsWithinRange()
+    {
+        var recurringTransaction = new RecurringTransaction
+        {
+            Id = Guid.NewGuid(),
+            Description = "Paycheck",
+            Amount = 2500m,
+            Type = TransactionType.Income,
+            Frequency = RecurrenceFrequency.Biweekly,
+            StartDate = new DateOnly(2026, 8, 7),
+        };
+
+        var result = _sut.Generate(
+            recurringTransaction,
+            new DateOnly(2026, 8, 1),
+            new DateOnly(2026, 9, 4)
+        );
+
+        result
+            .Select(x => x.Date)
+            .Should()
+            .Equal(new DateOnly(2026, 8, 7), new DateOnly(2026, 8, 21), new DateOnly(2026, 9, 4));
+    }
 }
