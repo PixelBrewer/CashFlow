@@ -23,7 +23,7 @@ public class RecurringTransactionService : IRecurringTransactionService
         var results = new List<ScheduledTransaction>();
 
         var recurrenceDay = transaction.StartDate.Day;
-
+        var occurrenceDate = transaction.StartDate;
         var currentMonth = new DateOnly(transaction.StartDate.Year, transaction.StartDate.Month, 1);
 
         if (from > through)
@@ -31,8 +31,21 @@ public class RecurringTransactionService : IRecurringTransactionService
             throw new ArgumentException("The start date cannot be after the current date.");
         }
 
-        while (currentMonth <= through)
+        while (occurrenceDate <= through)
         {
+            if (ocurrenceDate >= from)
+            {
+                results.Add(
+                    new ScheduledTransaction
+                    {
+                        Id = Guid.NewGuid(),
+                        Description = transaction.Description,
+                        Date = ocurrenceDate,
+                        Amount = transacion.Amount,
+                        Type = transaction.Type,
+                    }
+                );
+            }
             var daysInMonth = DateTime.DaysInMonth(currentMonth.Year, currentMonth.Month);
             var day = Math.Min(recurrenceDay, daysInMonth);
             var occurrenceDate = new DateOnly(currentMonth.Year, currentMonth.Month, day);
