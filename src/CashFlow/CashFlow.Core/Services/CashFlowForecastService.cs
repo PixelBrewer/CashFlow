@@ -26,7 +26,16 @@ public class CashFlowForecastService(
         DateOnly through
     )
     {
-        var allTransactions = scheduledTransactions.ToList();
+        ArgumentNullException.ThrowIfNull(scheduledTransactions);
+        ArgumentNullException.ThrowIfNull(recurringTransactions);
+
+        if (from > through)
+        {
+            throw new ArgumentException("The start date cannot be after the end date.");
+        }
+        var allTransactions = scheduledTransactions
+            .Where(transaction => transaction.Date >= from && transaction.Date <= through)
+            .ToList();
 
         foreach (var recurringTransaction in recurringTransactions)
         {

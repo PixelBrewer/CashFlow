@@ -176,4 +176,91 @@ public class CashFlowForecastServiceTests
             Times.Once
         );
     }
+
+    [Test]
+    public void GenerateForecast_ShouldOnlyIncludeScheduledTransactionsWithinForecastRange()
+    {
+        var from = new DateOnly(2026, 8, 1);
+        var through = new DateOnly(2026, 8, 31);
+
+        var beforeRange = new ScheduledTransaction
+        {
+            Id = Guid.NewGuid(),
+            Description = "July Expense",
+            Amount = 100m,
+            Type = TransactionType.Expense,
+            Date = new DateOnly(2026, 7, 31),
+        };
+
+        var onStartDate = new ScheduledTransaction
+        {
+            Id = Guid.NewGuid(),
+            Description = "Start Date Expense",
+            Amount = 200m,
+            Type = TransactionType.Expense,
+            Date = from,
+        };
+
+        var insideRange = new ScheduledTransaction
+        {
+            Id = Guid.NewGuid(),
+            Description = "August Expense",
+            Amount = 300m,
+            Type = TransactionType.Expense,
+            Date = new DateOnly(2026, 8, 15),
+        };
+
+        var onEndDate = new ScheduledTransaction
+        {
+            Id = Guid.NewGuid(),
+            Description = "End Date Expense",
+            Amount = 400m,
+            Type = TransactionType.Expense,
+            Date = through,
+        };
+
+        var afterRange = new ScheduledTransaction
+        {
+            Id = Guid.NewGuid(),
+            Description = "September Expense",
+            Amount = 500m,
+            Type = TransactionType.Expense,
+            Date = new DateOnly(2026, 9, 1),
+        };
+
+        _sut.GenerateForecast(
+            1000m,
+            [beforeRange, onStartDate, insideRange, onEndDate, afterRange],
+            [],
+            from,
+            through
+        );
+
+        cashFlowProjectionServiceMock.Verify(
+            x =>
+                x.GenerateProjection(
+                    1000m,
+                    It.Is<IEnumerable<ScheduledTransaction>>(transactions =>
+                        transactions.Count() == 3
+                        && transactions.Contains(onStartDate)
+                        && transactions.Contains(insideRange)
+                        && transactions.Contains(onEndDate)
+                        && !transactions.Contains(beforeRange)
+                        && !transactions.Contains(afterRange)
+                    )
+                ),
+            Times.Once
+        );
+    }
+
+    [Test]
+    public void GenerateForecast_ShouldThrow_WhenFromIsAfterThrough()
+    {
+        var from = new DateOnly(2026, 9, 1);
+        var through = new DateOnly(2026, 8, 1);
+
+        var act = () => _sut.GenerateForecast(1000m, [], [], from, through);
+
+        act.Should().Throw<ArgumentException>();
+    }
 }
