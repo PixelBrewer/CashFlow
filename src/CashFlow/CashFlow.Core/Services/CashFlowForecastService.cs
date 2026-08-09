@@ -7,7 +7,7 @@ public interface ICashFlowForecastService
     CashFlowProjection GenerateForecast(
         decimal openingBalance,
         IEnumerable<ScheduledTransaction> scheduledTransactions,
-        IEnumerable<RecurringTransaction> recurringTrasnactions,
+        IEnumerable<RecurringTransaction> recurringTransactions,
         DateOnly from,
         DateOnly through
     );
@@ -26,6 +26,17 @@ public class CashFlowForecastService(
         DateOnly through
     )
     {
-        throw new NotImplementedException();
+        var allTransactions = scheduledTransactions.ToList();
+
+        foreach (var recurringTransaction in recurringTransactions)
+        {
+            var generateTransactions = recurringTransactionService.Generate(
+                recurringTransaction,
+                from,
+                through
+            );
+            allTransactions.AddRange(generateTransactions);
+        }
+        return cashFlowProjectionService.GenerateProjection(openingBalance, allTransactions);
     }
 }
