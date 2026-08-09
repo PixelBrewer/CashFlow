@@ -1,5 +1,6 @@
 namespace CashFlow.Core.Services;
 
+using CashFlow.Core.Enums;
 using CashFlow.Core.Models;
 
 public interface IRecurringTransactionService
@@ -55,5 +56,23 @@ public class RecurringTransactionService : IRecurringTransactionService
             currentMonth = currentMonth.AddMonths(1);
         }
         return results;
+    }
+
+    private static DateOnly GetNextOccurrence(
+        DateOnly current,
+        RecurrenceFrequency frequency,
+        int recurrenceDay
+    )
+    {
+        return frequency switch
+        {
+            RecurrenceFrequency.Weekly => current.AddDays(7),
+
+            RecurrenceFrequency.Biweekly => current.AddDays(14),
+
+            RecurrenceFrequency.Monthly => current.AddMonths(1),
+
+            _ => throw new ArgumentOutOfRangeException(nameof(frequency)),
+        };
     }
 }
