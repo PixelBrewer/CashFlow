@@ -1,5 +1,6 @@
 namespace CashFlow.Tests.Services;
 
+using AwesomeAssertions;
 using CashFlow.Core.Enums;
 using CashFlow.Core.Models;
 using CashFlow.Core.Services;
@@ -27,7 +28,6 @@ public class CashFlowForecastServiceTests
     [Test]
     public void GenerateForecast_ShouldCombineScheduledAndRecurringTransactions()
     {
-        // Arrange
         var from = new DateOnly(2026, 8, 1);
         var through = new DateOnly(2026, 8, 31);
 
@@ -63,10 +63,8 @@ public class CashFlowForecastServiceTests
             .Setup(x => x.Generate(recurringTransaction, from, through))
             .Returns([generatedRent]);
 
-        // Act
         _sut.GenerateForecast(1000m, [scheduledTransaction], [recurringTransaction], from, through);
 
-        // Assert
         cashFlowProjectionServiceMock.Verify(
             x =>
                 x.GenerateProjection(
@@ -75,6 +73,104 @@ public class CashFlowForecastServiceTests
                         transactions.Count() == 2
                         && transactions.Contains(scheduledTransaction)
                         && transactions.Contains(generatedRent)
+                    )
+                ),
+            Times.Once
+        );
+    }
+
+    [Test]
+    public void GenerateForecast_ShouldReturnProjectionFromProjectionService()
+    {
+        var from = new DateOnly(2026, 8, 1);
+        var through = new DateOnly(2026, 8, 31);
+
+        var expectedProjection = new CashFlowProjection
+        {
+            OpeningBalance = 1000m,
+            EndingBalance = 1500m,
+            LowestBalance = 900m,
+            Entries = [],
+        };
+
+        cashFlowProjectionServiceMock
+            .Setup(x => x.GenerateProjection(1000m, It.IsAny<IEnumerable<ScheduledTransaction>>()))
+            .Returns(expectedProjection);
+
+        var result = _sut.GenerateForecast(1000m, [], [], from, through);
+
+        result.Should().BeSameAs(expectedProjection);
+    }
+
+    [Test]
+    public void GenerateForecast_ShouldGenerateTransactionsForEachRecurringTransaction()
+    {
+        var from = new DateOnly(2026, 8, 1);
+        var through = new DateOnly(2026, 8, 31);
+
+        var rent = new RecurringTransaction
+        {
+            Id = Guid.NewGuid(),
+            Description = "Rent",
+            Amount = 1600m,
+            Type = TransactionType.Expense,
+            Frequency = RecurrenceFrequency.Monthly,
+            StartDate = new DateOnly(2026, 8, 3),
+        };
+
+        var paycheck = new RecurringTransaction
+        {
+            Id = Guid.NewGuid(),
+            Description = "Paycheck",
+            Amount = 2500m,
+            Type = TransactionType.Income,
+            Frequency = RecurrenceFrequency.Biweekly,
+            StartDate = new DateOnly(2026, 8, 7),
+        };
+
+        var generatedRent = new ScheduledTransaction
+        {
+            Id = Guid.NewGuid(),
+            Description = "Rent",
+            Amount = 1600m,
+            Type = TransactionType.Expense,
+            Date = new DateOnly(2026, 8, 3),
+        };
+
+        var generatedPaycheck = new ScheduledTransaction
+        {
+            Id = Guid.NewGuid(),
+            Description = "Paycheck",
+            Amount = 2500m,
+            Type = TransactionType.Income,
+            Date = new DateOnly(2026, 8, 7),
+        };
+
+        recurringTransactionServiceMock
+            .Setup(x => x.Generate(rent, from, through))
+            .Returns([generatedRent]);
+
+        recurringTransactionServiceMock
+            .Setup(x => x.Generate(paycheck, from, through))
+            .Returns([generatedPaycheck]);
+
+        _sut.GenerateForecast(1000m, [], [rent, paycheck], from, through);
+
+        recurringTransactionServiceMock.Verify(x => x.Generate(rent, from, through), Times.Once);
+
+        recurringTransactionServiceMock.Verify(
+            x => x.Generate(paycheck, from, through),
+            Times.Once
+        );
+
+        cashFlowProjectionServiceMock.Verify(
+            x =>
+                x.GenerateProjection(
+                    1000m,
+                    It.Is<IEnumerable<ScheduledTransaction>>(transactions =>
+                        transactions.Count() == 2
+                        && transactions.Contains(generatedRent)
+                        && transactions.Contains(generatedPaycheck)
                     )
                 ),
             Times.Once
