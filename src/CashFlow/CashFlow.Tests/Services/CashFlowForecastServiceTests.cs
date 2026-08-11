@@ -263,4 +263,26 @@ public class CashFlowForecastServiceTests
 
         act.Should().Throw<ArgumentException>();
     }
+
+    [Test]
+    public void GenerateForecast_ShouldThrow_WhenScheduledTransactionsIsNull()
+    {
+        var from = new DateOnly(2026, 8, 1);
+        var through = new DateOnly(2026, 8, 31);
+
+        var act = () => _sut.GenerateForecast(1000m, null!, [], from, through);
+
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Test]
+    public void GenerateForecast_ShouldThrow_WhenRecurringTransactionsIsNull()
+    {
+        var from = new DateOnly(2026, 8, 1);
+        var through = new DateOnly(2026, 8, 31);
+
+        var act = () => _sut.GenerateForecast(1000m, [], null!, from, through);
+
+        act.Should().Throw<ArgumentNullException>();
+    }
 }
