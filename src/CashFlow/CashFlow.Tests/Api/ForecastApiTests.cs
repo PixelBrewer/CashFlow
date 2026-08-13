@@ -66,7 +66,7 @@ public class ForecastsApiTests
             ],
         };
 
-        var response = await client.PostAsJsonAsync("/api/forecasts", request);
+        var response = await client.PostAsJsonAsync("/api/forecast", request);
 
         response.IsSuccessStatusCode.Should().BeTrue();
 
