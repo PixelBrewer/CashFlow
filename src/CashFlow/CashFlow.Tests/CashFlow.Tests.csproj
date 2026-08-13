@@ -32,6 +32,7 @@
     <ItemGroup>
       <ProjectReference Include="..\CashFlow.Core\CashFlow.Core.csproj" />
       <ProjectReference Include="..\CashFlow.Api\CashFlow.Api.csproj" />
+      <ProjectReference Include="..\CashFlow.Infrastructure\CashFlow.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>
