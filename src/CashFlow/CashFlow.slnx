@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="CashFlow.Api/CashFlow.Api.csproj" />
   <Project Path="CashFlow.Core/CashFlow.Core.csproj" />
+  <Project Path="CashFlow.Infrastructure/CashFlow.Infrastructure.csproj" />
   <Project Path="CashFlow.Tests/CashFlow.Tests.csproj" />
 </Solution>
