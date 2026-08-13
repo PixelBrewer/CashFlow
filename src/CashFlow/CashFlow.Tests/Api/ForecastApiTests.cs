@@ -74,6 +74,9 @@ public class ForecastsApiTests
 
         projection.Should().NotBeNull();
         projection.OpeningBalance.Should().Be(3200m);
+        projection.EndingBalance.Should().Be(6265m);
+        projection.LowestBalance.Should().Be(1715m);
+        projection.Entries.Should().HaveCount(5);
         projection.Entries.Should().NotBeEmpty();
     }
 }
