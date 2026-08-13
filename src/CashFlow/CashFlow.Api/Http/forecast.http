@@ -1,0 +1,44 @@
+### Generate cash flow forecast
+
+POST http://localhost:5220/api/forecast
+Content-Type: application/json
+
+{
+  "openingBalance": 3200,
+  "from": "2026-08-01",
+  "through": "2026-08-31",
+  "scheduledTransactions": [
+    {
+      "id": "8e14aef7-d7d7-43d4-bfc5-b30f1af58564",
+      "description": "Reimbursement",
+      "date": "2026-08-01",
+      "amount": 115,
+      "type": 0
+    },
+    {
+      "id": "50785b32-6829-4b94-901e-d54ad626416e",
+      "description": "Car Repair",
+      "date": "2026-08-19",
+      "amount": 450,
+      "type": 1
+    }
+  ],
+  "recurringTransactions": [
+    {
+      "id": "f22164ef-50a2-4814-bd3a-546a88afcd86",
+      "description": "Rent",
+      "amount": 1600,
+      "type": 1,
+      "frequency": 2,
+      "startDate": "2026-08-03"
+    },
+    {
+      "id": "c1939fc7-f6d9-4ed4-aeb6-c4276d69eb32",
+      "description": "Paycheck",
+      "amount": 2500,
+      "type": 0,
+      "frequency": 1,
+      "startDate": "2026-08-07"
+    }
+  ]
+}
