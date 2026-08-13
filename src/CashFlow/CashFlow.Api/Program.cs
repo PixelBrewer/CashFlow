@@ -15,7 +15,9 @@ public class Program
         builder.Services.AddOpenApi();
 
         // Register custom services
+        builder.Services.AddScoped<IRecurringTransactionService, RecurringTransactionService>();
         builder.Services.AddScoped<ICashFlowProjectionService, CashFlowProjectionService>();
+        builder.Services.AddScoped<ICashFlowForecastService, CashFlowForecastService>();
 
         var app = builder.Build();
 
