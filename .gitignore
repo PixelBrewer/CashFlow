@@ -55,3 +55,10 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# Personal CashFlow budget files
+BudgetUpdate.xlsx
+*.budget.xlsx
+
+# Apple specific files
+.DS_Store
