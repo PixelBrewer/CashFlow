@@ -1,5 +1,35 @@
-﻿using CashFlow.Infrastructure.Excel;
+﻿using System.Reflection;
+using CashFlow.Infrastructure.Excel;
 using Spectre.Console;
+
+var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "Unknown";
+
+if (args.Contains("--help") || args.Contains("-h"))
+{
+    AnsiConsole.MarkupLine("[bold]CashFlow[/]");
+    AnsiConsole.WriteLine();
+    AnsiConsole.WriteLine(
+        "Import and visualize recurring cash-flow data from a supported Excel workbook."
+    );
+    AnsiConsole.WriteLine();
+
+    AnsiConsole.MarkupLine("[bold]Usage[/]");
+    AnsiConsole.WriteLine("  cashflow <workbook-path>");
+    AnsiConsole.WriteLine("  cashflow");
+    AnsiConsole.WriteLine();
+
+    AnsiConsole.MarkupLine("[bold]Options[/]");
+    AnsiConsole.WriteLine("  -h, --help      Show this help information");
+    AnsiConsole.WriteLine("      --version   Show the installed CashFlow version");
+
+    return 0;
+}
+
+if (args.Contains("--version"))
+{
+    AnsiConsole.MarkupLine($"CashFlow {version}");
+    return 0;
+}
 
 var filePath = args.Length > 0 ? args[0] : AnsiConsole.Ask<string>("Path to budget workbook:");
 
