@@ -25,9 +25,18 @@ public class ExcelCashFlowBudgetProvider(string filePath) : ICashFlowBudgetProvi
 
         for (var row = 2; row <= lastRow; row++)
         {
-            var dueDate = worksheet.Cell(row, 1).GetValue<int>();
-            var name = worksheet.Cell(row, 2).GetString();
-            var amount = worksheet.Cell(row, 3).GetValue<decimal>();
+            var dueDateCell = worksheet.Cell(row, 1);
+            var nameCell = worksheet.Cell(row, 2);
+            var amountCell = worksheet.Cell(row, 3);
+
+            if (!IsValidBillRow(dueDateCell, nameCell, amountCell))
+            {
+                continue;
+            }
+
+            var dueDate = dueDateCell.GetValue<int>();
+            var name = nameCell.GetString();
+            var amount = amountCell.GetValue<decimal>();
 
             recurringTransactions.Add(
                 new RecurringTransaction
@@ -60,5 +69,10 @@ public class ExcelCashFlowBudgetProvider(string filePath) : ICashFlowBudgetProvi
 
         var nextMonthDay = Math.Min(dayOfMonth, daysInNextMonth);
         return new DateOnly(nextMonth.Year, nextMonth.Month, nextMonthDay);
+    }
+
+    private static bool IsValidBillRow(IXLCell dueDateCell, IXLCell nameCell, IXLCell amountCell)
+    {
+        return !dueDateCell.IsEmpty() && !nameCell.IsEmpty() && !amountCell.IsEmpty();
     }
 }

@@ -126,4 +126,38 @@ public class ExcelCashFlowBudgetProviderTests
             .Should()
             .BeEquivalentTo("SoFi Personal Loan", "Internet", "Car Insurance");
     }
+
+    [Test]
+    public void GetBudget_ShouldSkipRowsThatAreNotValidBills()
+    {
+        using (var workbook = new XLWorkbook())
+        {
+            var worksheet = workbook.AddWorksheet("Budget");
+
+            worksheet.Cell("A1").Value = "Payment Due Date";
+            worksheet.Cell("B1").Value = "Name";
+            worksheet.Cell("C1").Value = "Actual payment Monthly";
+
+            worksheet.Cell("A2").Value = 5;
+            worksheet.Cell("B2").Value = "SoFi Personal Loan";
+            worksheet.Cell("C2").Value = 296.82m;
+
+            // Blank row
+            worksheet.Cell("A3").Value = "";
+
+            // Missing amount
+            worksheet.Cell("A4").Value = 15;
+            worksheet.Cell("B4").Value = "Paused Investment";
+
+            workbook.SaveAs(_filePath);
+        }
+
+        var provider = new ExcelCashFlowBudgetProvider(_filePath);
+
+        var budget = provider.GetBudget(new DateOnly(2026, 8, 13));
+
+        budget.RecurringTransactions.Should().ContainSingle();
+
+        budget.RecurringTransactions.Single().Description.Should().Be("SoFi Personal Loan");
+    }
 }
