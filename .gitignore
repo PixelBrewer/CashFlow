@@ -62,3 +62,6 @@ BudgetUpdate.xlsx
 
 # Apple specific files
 .DS_Store
+
+# JetBrains IDE files
+.idea/
