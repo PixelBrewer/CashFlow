@@ -15,7 +15,7 @@
     <Nullable>enable</Nullable>
     <Version>0.1.0</Version>
     <AssemblyName>cashflow</AssemblyName>
-    <Prodict>CashFlow</Prodict>
+    <Product>CashFlow</Product>
     <Description>A local-first CLI for importing and visualizing personal cash-flow data.</Description>
   </PropertyGroup>
 </Project>
