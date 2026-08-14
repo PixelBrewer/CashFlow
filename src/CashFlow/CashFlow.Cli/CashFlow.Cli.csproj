@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <ItemGroup>
     <ProjectReference Include="..\CashFlow.Core\CashFlow.Core.csproj" />
     <ProjectReference Include="..\CashFlow.Infrastructure\CashFlow.Infrastructure.csproj" />
@@ -14,6 +13,9 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Version>0.1.0</Version>
+    <AssemblyName>cashflow</AssemblyName>
+    <Prodict>CashFlow</Prodict>
+    <Description>A local-first CLI for importing and visualizing personal cash-flow data.</Description>
   </PropertyGroup>
-
 </Project>
