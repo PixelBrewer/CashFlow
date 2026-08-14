@@ -6,7 +6,7 @@ on:
       - "v*.*.*"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   publish:
@@ -14,14 +14,17 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         include:
           - runtime: osx-arm64
             os: macos-latest
             archive: tar.gz
+
           - runtime: linux-x64
             os: ubuntu-latest
             archive: tar.gz
+
           - runtime: win-x64
             os: windows-latest
             archive: zip
@@ -29,6 +32,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -46,27 +51,73 @@ jobs:
             -p:IncludeNativeLibrariesForSelfExtract=true \
             --output artifacts/${{ matrix.runtime }}
 
-      - name: Create archive
+      - name: Prepare macOS/Linux release package
         if: matrix.archive == 'tar.gz'
         shell: bash
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+          RUNTIME: ${{ matrix.runtime }}
         run: |
-          cd artifacts/${{ matrix.runtime }}
-          tar -czf ../cashflow-${{ github.ref_name }}-${{ matrix.runtime }}.tar.gz cashflow
+          RELEASE_DIR="cashflow-${TAG_NAME}-${RUNTIME}"
 
-      - name: Create Windows archive
+          mkdir -p "artifacts/${RELEASE_DIR}/samples"
+
+          cp "artifacts/${RUNTIME}/cashflow" \
+             "artifacts/${RELEASE_DIR}/cashflow"
+
+          cp README.md \
+             "artifacts/${RELEASE_DIR}/README.md"
+
+          cp LICENSE \
+             "artifacts/${RELEASE_DIR}/LICENSE"
+
+          cp docs/samples/CashFlow.SampleBudget.xlsx \
+             "artifacts/${RELEASE_DIR}/samples/CashFlow.SampleBudget.xlsx"
+
+          cd artifacts
+
+          tar -czf "${RELEASE_DIR}.tar.gz" "${RELEASE_DIR}"
+
+      - name: Prepare Windows release package
         if: matrix.archive == 'zip'
         shell: pwsh
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+          RUNTIME: ${{ matrix.runtime }}
         run: |
-          Compress-Archive `
-            -Path artifacts/${{ matrix.runtime }}/cashflow.exe `
-            -DestinationPath artifacts/cashflow-${{ github.ref_name }}-${{ matrix.runtime }}.zip
+          $releaseDir = "cashflow-$env:TAG_NAME-$env:RUNTIME"
 
-      - name: Upload artifact
+          New-Item `
+            -ItemType Directory `
+            -Force `
+            -Path "artifacts/$releaseDir/samples"
+
+          Copy-Item `
+            "artifacts/$env:RUNTIME/cashflow.exe" `
+            "artifacts/$releaseDir/cashflow.exe"
+
+          Copy-Item `
+            README.md `
+            "artifacts/$releaseDir/README.md"
+
+          Copy-Item `
+            LICENSE `
+            "artifacts/$releaseDir/LICENSE"
+
+          Copy-Item `
+            "docs/samples/CashFlow.SampleBudget.xlsx" `
+            "artifacts/$releaseDir/samples/CashFlow.SampleBudget.xlsx"
+
+          Compress-Archive `
+            -Path "artifacts/$releaseDir" `
+            -DestinationPath "artifacts/$releaseDir.zip"
+
+      - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
           name: cashflow-${{ matrix.runtime }}
           path: |
-            artifacts/cashflow-${{ github.ref_name }}-${{ matrix.runtime }}.*
+            artifacts/cashflow-${{ github.ref_name }}-${{ matrix.runtime }}.${{ matrix.archive }}
           if-no-files-found: error
 
   release:
@@ -74,15 +125,24 @@ jobs:
     needs: publish
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     steps:
-      - name: Download artifacts
+      - name: Download release artifacts
         uses: actions/download-artifact@v4
         with:
           path: release-artifacts
           merge-multiple: true
 
-      - name: Create release
-        uses: softprops/action-gh-release@v2
-        with:
-          generate_release_notes: true
-          files: release-artifacts/*
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          gh release create "$TAG_NAME" \
+            release-artifacts/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "CashFlow $TAG_NAME" \
+            --generate-notes
