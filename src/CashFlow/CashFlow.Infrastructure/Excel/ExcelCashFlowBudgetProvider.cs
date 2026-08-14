@@ -11,7 +11,7 @@ public class ExcelCashFlowBudgetProvider(string filePath) : ICashFlowBudgetProvi
     {
         using var workbook = new XLWorkbook(filePath);
 
-        var worksheet = workbook.Worksheet("Budget");
+        var worksheet = workbook.Worksheet("Sheet1");
 
         var recurringTransactions = new List<RecurringTransaction>();
         var lastRowUsed = worksheet.LastRowUsed();
@@ -27,14 +27,14 @@ public class ExcelCashFlowBudgetProvider(string filePath) : ICashFlowBudgetProvi
         {
             var dueDateCell = worksheet.Cell(row, 1);
             var nameCell = worksheet.Cell(row, 2);
-            var amountCell = worksheet.Cell(row, 3);
+            var amountCell = worksheet.Cell(row, 6);
 
             if (!IsValidBillRow(dueDateCell, nameCell, amountCell))
             {
                 continue;
             }
 
-            var dueDate = dueDateCell.GetValue<int>();
+            var dueDay = GetDueDay(dueDateCell, effectiveDate);
             var name = nameCell.GetString();
             var amount = amountCell.GetValue<decimal>();
 
@@ -46,7 +46,7 @@ public class ExcelCashFlowBudgetProvider(string filePath) : ICashFlowBudgetProvi
                     Amount = amount,
                     Type = TransactionType.Expense,
                     Frequency = RecurrenceFrequency.Monthly,
-                    StartDate = GetNextMonthlyOccurrence(effectiveDate, dueDate),
+                    StartDate = GetNextMonthlyOccurrence(effectiveDate, dueDay),
                 }
             );
         }
@@ -74,5 +74,21 @@ public class ExcelCashFlowBudgetProvider(string filePath) : ICashFlowBudgetProvi
     private static bool IsValidBillRow(IXLCell dueDateCell, IXLCell nameCell, IXLCell amountCell)
     {
         return !dueDateCell.IsEmpty() && !nameCell.IsEmpty() && !amountCell.IsEmpty();
+    }
+
+    private static int GetDueDay(IXLCell dueDateCell, DateOnly effectiveDate)
+    {
+        var dueDateText = dueDateCell.GetString().Trim();
+
+        if (dueDateText.Equals("Last day of the month", StringComparison.OrdinalIgnoreCase))
+        {
+            return DateTime.DaysInMonth(effectiveDate.Year, effectiveDate.Month);
+        }
+        var numericPart = new string(dueDateText.TakeWhile(char.IsDigit).ToArray());
+        if (!int.TryParse(numericPart, out var dueDay) || dueDay is < 1 or > 31)
+        {
+            throw new FormatException($"Unable to parse due date '{dueDateText}'.");
+        }
+        return dueDay;
     }
 }
