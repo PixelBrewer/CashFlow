@@ -34,9 +34,9 @@ public class ExcelCashFlowBudgetProviderTests
 
             AddBudgetHeaders(worksheet);
 
-            worksheet.Cell("A2").Value = "20th of the month";
-            worksheet.Cell("B2").Value = "SoFi Personal Loan";
-            worksheet.Cell("F2").Value = 296.82m;
+            worksheet.Cell("A3").Value = "20th of the month";
+            worksheet.Cell("B3").Value = "SoFi Personal Loan";
+            worksheet.Cell("F3").Value = 296.82m;
 
             workbook.SaveAs(_filePath);
         }
@@ -67,18 +67,16 @@ public class ExcelCashFlowBudgetProviderTests
 
             AddBudgetHeaders(worksheet);
 
-            worksheet.Cell("A2").Value = "5th of the month";
-            worksheet.Cell("B2").Value = "SoFi Personal Loan";
-            worksheet.Cell("F2").Value = 296.82m;
+            worksheet.Cell("A3").Value = "5th of the month";
+            worksheet.Cell("B3").Value = "SoFi Personal Loan";
+            worksheet.Cell("F3").Value = 296.82m;
 
             workbook.SaveAs(_filePath);
         }
 
         var provider = new ExcelCashFlowBudgetProvider(_filePath);
 
-        var effectiveDate = new DateOnly(2026, 8, 13);
-
-        var budget = provider.GetBudget(effectiveDate);
+        var budget = provider.GetBudget(new DateOnly(2026, 8, 13));
 
         var transaction = budget.RecurringTransactions.Single();
 
@@ -94,17 +92,17 @@ public class ExcelCashFlowBudgetProviderTests
 
             AddBudgetHeaders(worksheet);
 
-            worksheet.Cell("A2").Value = "5th of the month";
-            worksheet.Cell("B2").Value = "SoFi Personal Loan";
-            worksheet.Cell("F2").Value = 296.82m;
+            worksheet.Cell("A3").Value = "5th of the month";
+            worksheet.Cell("B3").Value = "SoFi Personal Loan";
+            worksheet.Cell("F3").Value = 296.82m;
 
-            worksheet.Cell("A3").Value = "15th of the month";
-            worksheet.Cell("B3").Value = "Internet";
-            worksheet.Cell("F3").Value = 70.15m;
+            worksheet.Cell("A4").Value = "15th of the month";
+            worksheet.Cell("B4").Value = "Internet";
+            worksheet.Cell("F4").Value = 70.15m;
 
-            worksheet.Cell("A4").Value = "20th of the month";
-            worksheet.Cell("B4").Value = "Car Insurance";
-            worksheet.Cell("F4").Value = 120.09m;
+            worksheet.Cell("A5").Value = "20th of the month";
+            worksheet.Cell("B5").Value = "Car Insurance";
+            worksheet.Cell("F5").Value = 120.09m;
 
             workbook.SaveAs(_filePath);
         }
@@ -151,16 +149,15 @@ public class ExcelCashFlowBudgetProviderTests
 
             AddBudgetHeaders(worksheet);
 
-            worksheet.Cell("A2").Value = "5th of the month";
-            worksheet.Cell("B2").Value = "SoFi Personal Loan";
-            worksheet.Cell("F2").Value = 296.82m;
+            worksheet.Cell("A3").Value = "5th of the month";
+            worksheet.Cell("B3").Value = "SoFi Personal Loan";
+            worksheet.Cell("F3").Value = 296.82m;
 
-            // Completely blank row.
-            worksheet.Cell("A3").Value = "";
-
-            // Has a due date and name but no active monthly payment.
             worksheet.Cell("A4").Value = "15th of the month";
             worksheet.Cell("B4").Value = "Paused Investment";
+
+            worksheet.Cell("A5").Value = "20th of the month";
+            worksheet.Cell("F5").Value = 50m;
 
             workbook.SaveAs(_filePath);
         }
@@ -175,6 +172,68 @@ public class ExcelCashFlowBudgetProviderTests
     }
 
     [Test]
+    public void GetBudget_ShouldStopReadingBills_WhenBlankRowIsReached()
+    {
+        using (var workbook = new XLWorkbook())
+        {
+            var worksheet = workbook.AddWorksheet("Sheet1");
+
+            AddBudgetHeaders(worksheet);
+
+            worksheet.Cell("A3").Value = "5th of the month";
+            worksheet.Cell("B3").Value = "SoFi Personal Loan";
+            worksheet.Cell("F3").Value = 296.82m;
+
+            // End of monthly bill section.
+            worksheet.Cell("A4").Value = "";
+            worksheet.Cell("B4").Value = "";
+
+            // Represents another section later in the worksheet.
+            worksheet.Cell("A5").Value = "10th of the month";
+            worksheet.Cell("B5").Value = "Should Not Be Imported";
+            worksheet.Cell("F5").Value = 999m;
+
+            workbook.SaveAs(_filePath);
+        }
+
+        var provider = new ExcelCashFlowBudgetProvider(_filePath);
+
+        var budget = provider.GetBudget(new DateOnly(2026, 8, 13));
+
+        budget.RecurringTransactions.Should().ContainSingle();
+
+        budget.RecurringTransactions.Single().Description.Should().Be("SoFi Personal Loan");
+    }
+
+    [Test]
+    public void GetBudget_ShouldFindBillsHeaderRow_WhenHeaderIsNotFirstRow()
+    {
+        using (var workbook = new XLWorkbook())
+        {
+            var worksheet = workbook.AddWorksheet("Sheet1");
+
+            worksheet.Cell("B1").Value = "Monthly bills and debts";
+
+            AddBudgetHeaders(worksheet);
+
+            worksheet.Cell("A3").Value = "12th of the month";
+            worksheet.Cell("B3").Value = "Internet";
+            worksheet.Cell("F3").Value = 70.15m;
+
+            workbook.SaveAs(_filePath);
+        }
+
+        var provider = new ExcelCashFlowBudgetProvider(_filePath);
+
+        var budget = provider.GetBudget(new DateOnly(2026, 8, 13));
+
+        var transaction = budget.RecurringTransactions.Single();
+
+        transaction.Description.Should().Be("Internet");
+        transaction.StartDate.Should().Be(new DateOnly(2026, 9, 12));
+    }
+
+    [Test]
     public void GetBudget_ShouldMapLastDayOfMonth()
     {
         using (var workbook = new XLWorkbook())
@@ -183,9 +242,9 @@ public class ExcelCashFlowBudgetProviderTests
 
             AddBudgetHeaders(worksheet);
 
-            worksheet.Cell("A2").Value = "Last day of the month";
-            worksheet.Cell("B2").Value = "Monthly Bill";
-            worksheet.Cell("F2").Value = 100m;
+            worksheet.Cell("A3").Value = "Last day of the month";
+            worksheet.Cell("B3").Value = "Monthly Bill";
+            worksheet.Cell("F3").Value = 100m;
 
             workbook.SaveAs(_filePath);
         }
@@ -208,9 +267,9 @@ public class ExcelCashFlowBudgetProviderTests
 
             AddBudgetHeaders(worksheet);
 
-            worksheet.Cell("A2").Value = "31st of the month";
-            worksheet.Cell("B2").Value = "Month End Bill";
-            worksheet.Cell("F2").Value = 50m;
+            worksheet.Cell("A3").Value = "31st of the month";
+            worksheet.Cell("B3").Value = "Month End Bill";
+            worksheet.Cell("F3").Value = 50m;
 
             workbook.SaveAs(_filePath);
         }
@@ -226,11 +285,13 @@ public class ExcelCashFlowBudgetProviderTests
 
     private static void AddBudgetHeaders(IXLWorksheet worksheet)
     {
-        worksheet.Cell("A1").Value = "Payment Due Date";
-        worksheet.Cell("B1").Value = "Name";
-        worksheet.Cell("C1").Value = "Loan Interest Rate";
-        worksheet.Cell("D1").Value = "Outstanding balance";
-        worksheet.Cell("E1").Value = "Minimum Monthly";
-        worksheet.Cell("F1").Value = "Actual payment Monthly";
+        worksheet.Cell("B1").Value = "Monthly bills and debts";
+
+        worksheet.Cell("A2").Value = "Payment Due Date";
+        worksheet.Cell("B2").Value = "Name";
+        worksheet.Cell("C2").Value = "Loan Interest Rate";
+        worksheet.Cell("D2").Value = "Outstanding balance";
+        worksheet.Cell("E2").Value = "Minimum Monthly";
+        worksheet.Cell("F2").Value = "Actual payment Monthly";
     }
 }

@@ -22,12 +22,18 @@ public class ExcelCashFlowBudgetProvider(string filePath) : ICashFlowBudgetProvi
         }
 
         var lastRow = lastRowUsed.RowNumber();
+        var headerRow = FindBillsHeaderRow(worksheet);
 
-        for (var row = 2; row <= lastRow; row++)
+        for (var row = headerRow + 1; row <= lastRow; row++)
         {
             var dueDateCell = worksheet.Cell(row, 1);
             var nameCell = worksheet.Cell(row, 2);
             var amountCell = worksheet.Cell(row, 6);
+
+            if (dueDateCell.IsEmpty() && nameCell.IsEmpty())
+            {
+                break;
+            }
 
             if (!IsValidBillRow(dueDateCell, nameCell, amountCell))
             {
@@ -50,6 +56,7 @@ public class ExcelCashFlowBudgetProvider(string filePath) : ICashFlowBudgetProvi
                 }
             );
         }
+
         return new CashFlowBudgetDefinition { RecurringTransactions = recurringTransactions };
     }
 
@@ -84,11 +91,29 @@ public class ExcelCashFlowBudgetProvider(string filePath) : ICashFlowBudgetProvi
         {
             return DateTime.DaysInMonth(effectiveDate.Year, effectiveDate.Month);
         }
-        var numericPart = new string(dueDateText.TakeWhile(char.IsDigit).ToArray());
+        var numericPart = new string([.. dueDateText.TakeWhile(char.IsDigit)]);
         if (!int.TryParse(numericPart, out var dueDay) || dueDay is < 1 or > 31)
         {
             throw new FormatException($"Unable to parse due date '{dueDateText}'.");
         }
         return dueDay;
+    }
+
+    private static int FindBillsHeaderRow(IXLWorksheet worksheet)
+    {
+        var lastRowUsed =
+            worksheet.LastRowUsed()
+            ?? throw new InvalidOperationException("The worksheet is empty.");
+        for (var row = 1; row <= lastRowUsed.RowNumber(); row++)
+        {
+            var value = worksheet.Cell(row, 1).GetString().Trim();
+
+            if (value.Equals("Payment Due Date", StringComparison.OrdinalIgnoreCase))
+            {
+                return row;
+            }
+        }
+
+        throw new InvalidOperationException("Could not find the monthly bills header row.");
     }
 }
