@@ -36,7 +36,7 @@ public class ExcelCashFlowBudgetProviderTests
             worksheet.Cell("B1").Value = "Name";
             worksheet.Cell("C1").Value = "Actual payment Monthly";
 
-            worksheet.Cell("A2").Value = 5;
+            worksheet.Cell("A2").Value = 20;
             worksheet.Cell("B2").Value = "SoFi Personal Loan";
             worksheet.Cell("C2").Value = 296.82m;
 
@@ -45,7 +45,9 @@ public class ExcelCashFlowBudgetProviderTests
 
         var provider = new ExcelCashFlowBudgetProvider(_filePath);
 
-        var budget = provider.GetBudget();
+        var effectiveDate = new DateOnly(2026, 8, 13);
+
+        var budget = provider.GetBudget(effectiveDate);
 
         budget.RecurringTransactions.Should().ContainSingle();
 
@@ -55,5 +57,35 @@ public class ExcelCashFlowBudgetProviderTests
         transaction.Amount.Should().Be(296.82m);
         transaction.Type.Should().Be(TransactionType.Expense);
         transaction.Frequency.Should().Be(RecurrenceFrequency.Monthly);
+        transaction.StartDate.Should().Be(new DateOnly(2026, 8, 20));
+    }
+
+    [Test]
+    public void GetBudget_ShouldUseNextMonth_WhenMonthlyDueDateHasPassed()
+    {
+        using (var workbook = new XLWorkbook())
+        {
+            var worksheet = workbook.AddWorksheet("Budget");
+
+            worksheet.Cell("A1").Value = "Payment Due Date";
+            worksheet.Cell("B1").Value = "Name";
+            worksheet.Cell("C1").Value = "Actual payment Monthly";
+
+            worksheet.Cell("A2").Value = 5;
+            worksheet.Cell("B2").Value = "SoFi Personal Loan";
+            worksheet.Cell("C2").Value = 296.82m;
+
+            workbook.SaveAs(_filePath);
+        }
+
+        var provider = new ExcelCashFlowBudgetProvider(_filePath);
+
+        var effectiveDate = new DateOnly(2026, 8, 13);
+
+        var budget = provider.GetBudget(effectiveDate);
+
+        var transaction = budget.RecurringTransactions.Single();
+
+        transaction.StartDate.Should().Be(new DateOnly(2026, 9, 5));
     }
 }

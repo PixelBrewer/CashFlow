@@ -4,5 +4,5 @@ namespace CashFlow.Core.Interfaces;
 
 public interface ICashFlowBudgetProvider
 {
-    CashFlowBudgetDefinition GetBudget();
+    CashFlowBudgetDefinition GetBudget(DateOnly effectiveDate);
 }
