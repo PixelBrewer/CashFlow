@@ -14,22 +14,33 @@ public class ExcelCashFlowBudgetProvider(string filePath) : ICashFlowBudgetProvi
         var worksheet = workbook.Worksheet("Budget");
 
         var recurringTransactions = new List<RecurringTransaction>();
-        var dueDate = worksheet.Cell("A2").GetValue<int>();
-        var name = worksheet.Cell("B2").GetString();
-        var amount = worksheet.Cell("C2").GetValue<decimal>();
+        var lastRowUsed = worksheet.LastRowUsed();
 
-        recurringTransactions.Add(
-            new RecurringTransaction
-            {
-                Id = Guid.NewGuid(),
-                Description = name,
-                Amount = amount,
-                Type = TransactionType.Expense,
-                Frequency = RecurrenceFrequency.Monthly,
-                StartDate = GetNextMonthlyOccurrence(effectiveDate, dueDate),
-            }
-        );
+        if (lastRowUsed is null)
+        {
+            return new CashFlowBudgetDefinition();
+        }
 
+        var lastRow = lastRowUsed.RowNumber();
+
+        for (var row = 2; row <= lastRow; row++)
+        {
+            var dueDate = worksheet.Cell("A2").GetValue<int>();
+            var name = worksheet.Cell("B2").GetString();
+            var amount = worksheet.Cell("C2").GetValue<decimal>();
+
+            recurringTransactions.Add(
+                new RecurringTransaction
+                {
+                    Id = Guid.NewGuid(),
+                    Description = name,
+                    Amount = amount,
+                    Type = TransactionType.Expense,
+                    Frequency = RecurrenceFrequency.Monthly,
+                    StartDate = GetNextMonthlyOccurrence(effectiveDate, dueDate),
+                }
+            );
+        }
         return new CashFlowBudgetDefinition { RecurringTransactions = recurringTransactions };
     }
 
