@@ -6,7 +6,7 @@ using CashFlow.Infrastructure.Excel;
 using ClosedXML.Excel;
 
 [TestFixture]
-public class ExcelCashFlowBudgetProviderTests
+public class ExcelBudgetProviderTests
 {
     private string _filePath = null!;
 

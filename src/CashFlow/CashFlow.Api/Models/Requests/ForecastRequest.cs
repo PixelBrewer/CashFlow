@@ -2,7 +2,7 @@ namespace CashFlow.Api.Models.Requests;
 
 using CashFlow.Core.Models;
 
-public class CashFlowForecastRequest
+public class ForecastRequest
 {
     public decimal OpeningBalance { get; set; }
     public DateOnly From { get; set; }
