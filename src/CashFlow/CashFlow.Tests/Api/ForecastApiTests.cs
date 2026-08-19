@@ -9,7 +9,7 @@ using CashFlow.Core.Models;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 [TestFixture]
-public class ForecastsApiTests
+public class ForecastApiTests
 {
     [Test]
     public async Task GenerateForecast_ShouldReturnExpectedProjection()

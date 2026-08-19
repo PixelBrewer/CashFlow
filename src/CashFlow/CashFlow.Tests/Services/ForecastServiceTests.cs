@@ -14,7 +14,7 @@ public class ForecastServiceTests
     private ForecastService _sut = null!;
 
     [SetUp]
-    public void Setup()
+    public void SetUp()
     {
         recurringTransactionServiceMock = new Mock<IRecurringTransactionService>();
         projectionServiceMock = new Mock<IProjectionService>();

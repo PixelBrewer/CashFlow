@@ -12,13 +12,13 @@ public class ForecastController(IForecastService forecastService) : ControllerBa
     [HttpPost]
     public ActionResult<Projection> Generate(ForecastRequest request)
     {
-        var forecast = forecastService.GenerateForecast(
+        var projection = forecastService.GenerateForecast(
             request.OpeningBalance,
             request.ScheduledTransactions,
             request.RecurringTransactions,
             request.From,
             request.Through
         );
-        return Ok(forecast);
+        return Ok(projection);
     }
 }
