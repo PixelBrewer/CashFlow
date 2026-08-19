@@ -2,9 +2,9 @@ namespace CashFlow.Core.Services;
 
 using CashFlow.Core.Models;
 
-public interface ICashFlowForecastService
+public interface IForecastService
 {
-    CashFlowProjection GenerateForecast(
+    Projection GenerateForecast(
         decimal openingBalance,
         IEnumerable<ScheduledTransaction> scheduledTransactions,
         IEnumerable<RecurringTransaction> recurringTransactions,
@@ -13,12 +13,12 @@ public interface ICashFlowForecastService
     );
 }
 
-public class CashFlowForecastService(
+public class ForecastService(
     IRecurringTransactionService recurringTransactionService,
-    ICashFlowProjectionService cashFlowProjectionService
-) : ICashFlowForecastService
+    IProjectionService projectionService
+) : IForecastService
 {
-    public CashFlowProjection GenerateForecast(
+    public Projection GenerateForecast(
         decimal openingBalance,
         IEnumerable<ScheduledTransaction> scheduledTransactions,
         IEnumerable<RecurringTransaction> recurringTransactions,
@@ -46,6 +46,6 @@ public class CashFlowForecastService(
             );
             allTransactions.AddRange(generateTransactions);
         }
-        return cashFlowProjectionService.GenerateProjection(openingBalance, allTransactions);
+        return projectionService.GenerateProjection(openingBalance, allTransactions);
     }
 }

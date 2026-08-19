@@ -7,12 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ForecastController(ICashFlowForecastService cashFlowForecastService) : ControllerBase
+public class ForecastController(IForecastService forecastService) : ControllerBase
 {
     [HttpPost]
-    public ActionResult<CashFlowProjection> Generate(CashFlowForecastRequest request)
+    public ActionResult<Projection> Generate(ForecastRequest request)
     {
-        var forecast = cashFlowForecastService.GenerateForecast(
+        var forecast = forecastService.GenerateForecast(
             request.OpeningBalance,
             request.ScheduledTransactions,
             request.RecurringTransactions,

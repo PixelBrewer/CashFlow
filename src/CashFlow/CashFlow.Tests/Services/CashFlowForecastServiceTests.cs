@@ -10,16 +10,16 @@ using Moq;
 public class CashFlowForecastServiceTests
 {
     private Mock<IRecurringTransactionService> recurringTransactionServiceMock = null!;
-    private Mock<ICashFlowProjectionService> cashFlowProjectionServiceMock = null!;
-    private CashFlowForecastService _sut = null!;
+    private Mock<IProjectionService> cashFlowProjectionServiceMock = null!;
+    private ForecastService _sut = null!;
 
     [SetUp]
     public void Setup()
     {
         recurringTransactionServiceMock = new Mock<IRecurringTransactionService>();
-        cashFlowProjectionServiceMock = new Mock<ICashFlowProjectionService>();
+        cashFlowProjectionServiceMock = new Mock<IProjectionService>();
 
-        _sut = new CashFlowForecastService(
+        _sut = new ForecastService(
             recurringTransactionServiceMock.Object,
             cashFlowProjectionServiceMock.Object
         );
@@ -85,7 +85,7 @@ public class CashFlowForecastServiceTests
         var from = new DateOnly(2026, 8, 1);
         var through = new DateOnly(2026, 8, 31);
 
-        var expectedProjection = new CashFlowProjection
+        var expectedProjection = new Projection
         {
             OpeningBalance = 1000m,
             EndingBalance = 1500m,

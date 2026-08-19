@@ -7,13 +7,13 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ProjectionsController(ICashFlowProjectionService cashFlowProjectionService)
+public class ProjectionsController(IProjectionService projectionService)
     : ControllerBase
 {
     [HttpPost]
-    public ActionResult<CashFlowProjection> Generate(CashFlowProjectionRequest request)
+    public ActionResult<Projection> Generate(ProjectionRequest request)
     {
-        var projection = cashFlowProjectionService.GenerateProjection(
+        var projection = projectionService.GenerateProjection(
             request.OpeningBalance,
             request.Transactions
         );

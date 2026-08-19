@@ -16,8 +16,8 @@ public class Program
 
         // Register custom services
         builder.Services.AddScoped<IRecurringTransactionService, RecurringTransactionService>();
-        builder.Services.AddScoped<ICashFlowProjectionService, CashFlowProjectionService>();
-        builder.Services.AddScoped<ICashFlowForecastService, CashFlowForecastService>();
+        builder.Services.AddScoped<IProjectionService, ProjectionService>();
+        builder.Services.AddScoped<IForecastService, ForecastService>();
 
         var app = builder.Build();
 

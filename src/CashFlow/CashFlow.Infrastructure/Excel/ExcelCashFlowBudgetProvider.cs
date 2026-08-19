@@ -5,9 +5,9 @@ using CashFlow.Core.Interfaces;
 using CashFlow.Core.Models;
 using ClosedXML.Excel;
 
-public class ExcelCashFlowBudgetProvider(string filePath) : ICashFlowBudgetProvider
+public class ExcelBudgetProvider(string filePath) : IBudgetProvider
 {
-    public CashFlowBudgetDefinition GetBudget(DateOnly effectiveDate)
+    public BudgetDefinition GetBudget(DateOnly effectiveDate)
     {
         using var workbook = new XLWorkbook(filePath);
 
@@ -18,7 +18,7 @@ public class ExcelCashFlowBudgetProvider(string filePath) : ICashFlowBudgetProvi
 
         if (lastRowUsed is null)
         {
-            return new CashFlowBudgetDefinition();
+            return new BudgetDefinition();
         }
 
         var lastRow = lastRowUsed.RowNumber();
@@ -57,7 +57,7 @@ public class ExcelCashFlowBudgetProvider(string filePath) : ICashFlowBudgetProvi
             );
         }
 
-        return new CashFlowBudgetDefinition { RecurringTransactions = recurringTransactions };
+        return new BudgetDefinition { RecurringTransactions = recurringTransactions };
     }
 
     private static DateOnly GetNextMonthlyOccurrence(DateOnly effectiveDate, int dayOfMonth)
