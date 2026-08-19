@@ -7,21 +7,21 @@ using CashFlow.Core.Services;
 using Moq;
 
 [TestFixture]
-public class CashFlowForecastServiceTests
+public class ForecastServiceTests
 {
     private Mock<IRecurringTransactionService> recurringTransactionServiceMock = null!;
-    private Mock<IProjectionService> cashFlowProjectionServiceMock = null!;
+    private Mock<IProjectionService> projectionServiceMock = null!;
     private ForecastService _sut = null!;
 
     [SetUp]
     public void Setup()
     {
         recurringTransactionServiceMock = new Mock<IRecurringTransactionService>();
-        cashFlowProjectionServiceMock = new Mock<IProjectionService>();
+        projectionServiceMock = new Mock<IProjectionService>();
 
         _sut = new ForecastService(
             recurringTransactionServiceMock.Object,
-            cashFlowProjectionServiceMock.Object
+            projectionServiceMock.Object
         );
     }
 
@@ -65,7 +65,7 @@ public class CashFlowForecastServiceTests
 
         _sut.GenerateForecast(1000m, [scheduledTransaction], [recurringTransaction], from, through);
 
-        cashFlowProjectionServiceMock.Verify(
+        projectionServiceMock.Verify(
             x =>
                 x.GenerateProjection(
                     1000m,
@@ -93,7 +93,7 @@ public class CashFlowForecastServiceTests
             Entries = [],
         };
 
-        cashFlowProjectionServiceMock
+        projectionServiceMock
             .Setup(x => x.GenerateProjection(1000m, It.IsAny<IEnumerable<ScheduledTransaction>>()))
             .Returns(expectedProjection);
 
@@ -163,7 +163,7 @@ public class CashFlowForecastServiceTests
             Times.Once
         );
 
-        cashFlowProjectionServiceMock.Verify(
+        projectionServiceMock.Verify(
             x =>
                 x.GenerateProjection(
                     1000m,
@@ -236,7 +236,7 @@ public class CashFlowForecastServiceTests
             through
         );
 
-        cashFlowProjectionServiceMock.Verify(
+        projectionServiceMock.Verify(
             x =>
                 x.GenerateProjection(
                     1000m,

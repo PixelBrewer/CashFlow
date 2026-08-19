@@ -7,7 +7,7 @@ using Core.Services;
 
 
 [TestFixture]
-public class CashFlowProjectionServiceTests
+public class ProjectionServiceTests
 {
     private ProjectionService _sut = null!;
 

@@ -6,7 +6,7 @@ using CashFlow.Core.Models;
 using CashFlow.Core.Services;
 
 [TestFixture]
-public class CashFlowRecurringTransactionServiceTests
+public class RecurringTransactionServiceTests
 {
     private RecurringTransactionService _sut = null!;
 
