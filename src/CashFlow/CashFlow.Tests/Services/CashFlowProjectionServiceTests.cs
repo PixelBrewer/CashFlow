@@ -9,12 +9,12 @@ using Core.Services;
 [TestFixture]
 public class CashFlowProjectionServiceTests
 {
-    private CashFlowProjectionService _sut = null!;
+    private ProjectionService _sut = null!;
 
     [SetUp]
     public void SetUp()
     {
-        _sut = new CashFlowProjectionService();
+        _sut = new ProjectionService();
     }
 
     [Test]

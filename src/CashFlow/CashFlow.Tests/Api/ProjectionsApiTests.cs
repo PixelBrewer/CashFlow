@@ -17,7 +17,7 @@ public class ProjectionsApiTests
         await using var factory = new WebApplicationFactory<Program>();
         using var client = factory.CreateClient();
 
-        var request = new CashFlowProjectionRequest
+        var request = new ProjectionRequest
         {
             OpeningBalance = 3200m,
             Transactions =
@@ -53,7 +53,7 @@ public class ProjectionsApiTests
 
         response.IsSuccessStatusCode.Should().BeTrue();
 
-        var projection = await response.Content.ReadFromJsonAsync<CashFlowProjection>();
+        var projection = await response.Content.ReadFromJsonAsync<Projection>();
 
         projection.Should().NotBeNull();
         projection.OpeningBalance.Should().Be(3200m);

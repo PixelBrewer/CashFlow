@@ -54,7 +54,7 @@ try
 {
     var effectiveDate = DateOnly.FromDateTime(DateTime.Today);
 
-    var provider = new ExcelCashFlowBudgetProvider(filePath);
+    var provider = new ExcelBudgetProvider(filePath);
 
     var budget = provider.GetBudget(effectiveDate);
 

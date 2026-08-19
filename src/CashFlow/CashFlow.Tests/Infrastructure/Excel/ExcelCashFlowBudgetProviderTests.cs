@@ -41,7 +41,7 @@ public class ExcelCashFlowBudgetProviderTests
             workbook.SaveAs(_filePath);
         }
 
-        var provider = new ExcelCashFlowBudgetProvider(_filePath);
+        var provider = new ExcelBudgetProvider(_filePath);
 
         var effectiveDate = new DateOnly(2026, 8, 13);
 
@@ -74,7 +74,7 @@ public class ExcelCashFlowBudgetProviderTests
             workbook.SaveAs(_filePath);
         }
 
-        var provider = new ExcelCashFlowBudgetProvider(_filePath);
+        var provider = new ExcelBudgetProvider(_filePath);
 
         var budget = provider.GetBudget(new DateOnly(2026, 8, 13));
 
@@ -107,7 +107,7 @@ public class ExcelCashFlowBudgetProviderTests
             workbook.SaveAs(_filePath);
         }
 
-        var provider = new ExcelCashFlowBudgetProvider(_filePath);
+        var provider = new ExcelBudgetProvider(_filePath);
 
         var budget = provider.GetBudget(new DateOnly(2026, 8, 13));
 
@@ -162,7 +162,7 @@ public class ExcelCashFlowBudgetProviderTests
             workbook.SaveAs(_filePath);
         }
 
-        var provider = new ExcelCashFlowBudgetProvider(_filePath);
+        var provider = new ExcelBudgetProvider(_filePath);
 
         var budget = provider.GetBudget(new DateOnly(2026, 8, 13));
 
@@ -196,7 +196,7 @@ public class ExcelCashFlowBudgetProviderTests
             workbook.SaveAs(_filePath);
         }
 
-        var provider = new ExcelCashFlowBudgetProvider(_filePath);
+        var provider = new ExcelBudgetProvider(_filePath);
 
         var budget = provider.GetBudget(new DateOnly(2026, 8, 13));
 
@@ -223,7 +223,7 @@ public class ExcelCashFlowBudgetProviderTests
             workbook.SaveAs(_filePath);
         }
 
-        var provider = new ExcelCashFlowBudgetProvider(_filePath);
+        var provider = new ExcelBudgetProvider(_filePath);
 
         var budget = provider.GetBudget(new DateOnly(2026, 8, 13));
 
@@ -249,7 +249,7 @@ public class ExcelCashFlowBudgetProviderTests
             workbook.SaveAs(_filePath);
         }
 
-        var provider = new ExcelCashFlowBudgetProvider(_filePath);
+        var provider = new ExcelBudgetProvider(_filePath);
 
         var budget = provider.GetBudget(new DateOnly(2026, 2, 10));
 
@@ -274,7 +274,7 @@ public class ExcelCashFlowBudgetProviderTests
             workbook.SaveAs(_filePath);
         }
 
-        var provider = new ExcelCashFlowBudgetProvider(_filePath);
+        var provider = new ExcelBudgetProvider(_filePath);
 
         var budget = provider.GetBudget(new DateOnly(2026, 2, 10));
 
