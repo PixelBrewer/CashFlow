@@ -39,12 +39,12 @@ public class ForecastService(
 
         foreach (var recurringTransaction in recurringTransactions)
         {
-            var generateTransactions = recurringTransactionService.Generate(
+            var generatedTransactions = recurringTransactionService.Generate(
                 recurringTransaction,
                 from,
                 through
             );
-            allTransactions.AddRange(generateTransactions);
+            allTransactions.AddRange(generatedTransactions);
         }
         return projectionService.GenerateProjection(openingBalance, allTransactions);
     }

@@ -11,7 +11,7 @@ public class RecurringTransactionServiceTests
     private RecurringTransactionService _sut = null!;
 
     [SetUp]
-    public void Setup()
+    public void SetUp()
     {
         _sut = new RecurringTransactionService();
     }
