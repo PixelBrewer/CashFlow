@@ -22,30 +22,24 @@ public class ProjectionsApiTests
             OpeningBalance = 3200m,
             Transactions =
             [
-                new ScheduledTransaction
-                {
-                    Id = Guid.NewGuid(),
-                    Description = "Reimbursement",
-                    Date = new DateOnly(2026, 8, 1),
-                    Amount = 115m,
-                    Type = TransactionType.Income,
-                },
-                new ScheduledTransaction
-                {
-                    Id = Guid.NewGuid(),
-                    Description = "Rent",
-                    Date = new DateOnly(2026, 8, 3),
-                    Amount = 1600m,
-                    Type = TransactionType.Expense,
-                },
-                new ScheduledTransaction
-                {
-                    Id = Guid.NewGuid(),
-                    Description = "Pay Advance",
-                    Date = new DateOnly(2026, 8, 12),
-                    Amount = 2500m,
-                    Type = TransactionType.Income,
-                },
+                CreateScheduledTransaction(
+                    "Reimbursement",
+                    new DateOnly(2026, 8, 1),
+                    115m,
+                    TransactionType.Income
+                ),
+                CreateScheduledTransaction(
+                    "Rent",
+                    new DateOnly(2026, 8, 3),
+                    1600m,
+                    TransactionType.Expense
+                ),
+                CreateScheduledTransaction(
+                    "Pay Advance",
+                    new DateOnly(2026, 8, 12),
+                    2500m,
+                    TransactionType.Income
+                ),
             ],
         };
 
@@ -60,5 +54,22 @@ public class ProjectionsApiTests
         projection.EndingBalance.Should().Be(4215m);
         projection.LowestBalance.Should().Be(1715m);
         projection.Entries.Should().HaveCount(3);
+    }
+
+    private static ScheduledTransaction CreateScheduledTransaction(
+        string description,
+        DateOnly date,
+        decimal amount,
+        TransactionType type
+    )
+    {
+        return new ScheduledTransaction
+        {
+            Id = Guid.NewGuid(),
+            Description = description,
+            Date = date,
+            Amount = amount,
+            Type = type,
+        };
     }
 }

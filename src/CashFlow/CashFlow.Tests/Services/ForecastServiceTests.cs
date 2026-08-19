@@ -9,6 +9,9 @@ using Moq;
 [TestFixture]
 public class ForecastServiceTests
 {
+    private readonly DateOnly _from = new(2026, 8, 1);
+    private readonly DateOnly _through = new(2026, 8, 31);
+
     private Mock<IRecurringTransactionService> recurringTransactionServiceMock = null!;
     private Mock<IProjectionService> projectionServiceMock = null!;
     private ForecastService _sut = null!;
@@ -28,42 +31,39 @@ public class ForecastServiceTests
     [Test]
     public void GenerateForecast_ShouldCombineScheduledAndRecurringTransactions()
     {
-        var from = new DateOnly(2026, 8, 1);
-        var through = new DateOnly(2026, 8, 31);
+        var scheduledTransaction = CreateScheduledTransaction(
+            "Car Repair",
+            450m,
+            TransactionType.Expense,
+            new DateOnly(2026, 8, 19)
+        );
 
-        var scheduledTransaction = new ScheduledTransaction
-        {
-            Id = Guid.NewGuid(),
-            Description = "Car Repair",
-            Amount = 450m,
-            Type = TransactionType.Expense,
-            Date = new DateOnly(2026, 8, 19),
-        };
+        var recurringTransaction = CreateRecurringTransaction(
+            "Rent",
+            1600m,
+            TransactionType.Expense,
+            RecurrenceFrequency.Monthly,
+            new DateOnly(2026, 8, 3)
+        );
 
-        var recurringTransaction = new RecurringTransaction
-        {
-            Id = Guid.NewGuid(),
-            Description = "Rent",
-            Amount = 1600m,
-            Type = TransactionType.Expense,
-            Frequency = RecurrenceFrequency.Monthly,
-            StartDate = new DateOnly(2026, 8, 3),
-        };
-
-        var generatedRent = new ScheduledTransaction
-        {
-            Id = Guid.NewGuid(),
-            Description = "Rent",
-            Amount = 1600m,
-            Type = TransactionType.Expense,
-            Date = new DateOnly(2026, 8, 3),
-        };
+        var generatedRent = CreateScheduledTransaction(
+            "Rent",
+            1600m,
+            TransactionType.Expense,
+            new DateOnly(2026, 8, 3)
+        );
 
         recurringTransactionServiceMock
-            .Setup(x => x.Generate(recurringTransaction, from, through))
+            .Setup(x => x.Generate(recurringTransaction, _from, _through))
             .Returns([generatedRent]);
 
-        _sut.GenerateForecast(1000m, [scheduledTransaction], [recurringTransaction], from, through);
+        _sut.GenerateForecast(
+            1000m,
+            [scheduledTransaction],
+            [recurringTransaction],
+            _from,
+            _through
+        );
 
         projectionServiceMock.Verify(
             x =>
@@ -82,9 +82,6 @@ public class ForecastServiceTests
     [Test]
     public void GenerateForecast_ShouldReturnProjectionFromProjectionService()
     {
-        var from = new DateOnly(2026, 8, 1);
-        var through = new DateOnly(2026, 8, 31);
-
         var expectedProjection = new Projection
         {
             OpeningBalance = 1000m,
@@ -97,7 +94,7 @@ public class ForecastServiceTests
             .Setup(x => x.GenerateProjection(1000m, It.IsAny<IEnumerable<ScheduledTransaction>>()))
             .Returns(expectedProjection);
 
-        var result = _sut.GenerateForecast(1000m, [], [], from, through);
+        var result = _sut.GenerateForecast(1000m, [], [], _from, _through);
 
         result.Should().BeSameAs(expectedProjection);
     }
@@ -105,61 +102,59 @@ public class ForecastServiceTests
     [Test]
     public void GenerateForecast_ShouldGenerateTransactionsForEachRecurringTransaction()
     {
-        var from = new DateOnly(2026, 8, 1);
-        var through = new DateOnly(2026, 8, 31);
+        var rent = CreateRecurringTransaction(
+            "Rent",
+            1600m,
+            TransactionType.Expense,
+            RecurrenceFrequency.Monthly,
+            new DateOnly(2026, 8, 3)
+        );
 
-        var rent = new RecurringTransaction
-        {
-            Id = Guid.NewGuid(),
-            Description = "Rent",
-            Amount = 1600m,
-            Type = TransactionType.Expense,
-            Frequency = RecurrenceFrequency.Monthly,
-            StartDate = new DateOnly(2026, 8, 3),
-        };
+        var paycheck = CreateRecurringTransaction(
+            "Paycheck",
+            2500m,
+            TransactionType.Income,
+            RecurrenceFrequency.Biweekly,
+            new DateOnly(2026, 8, 7)
+        );
 
-        var paycheck = new RecurringTransaction
-        {
-            Id = Guid.NewGuid(),
-            Description = "Paycheck",
-            Amount = 2500m,
-            Type = TransactionType.Income,
-            Frequency = RecurrenceFrequency.Biweekly,
-            StartDate = new DateOnly(2026, 8, 7),
-        };
+        var generatedRent = CreateScheduledTransaction(
+            "Rent",
+            1600m,
+            TransactionType.Expense,
+            new DateOnly(2026, 8, 3)
+        );
 
-        var generatedRent = new ScheduledTransaction
-        {
-            Id = Guid.NewGuid(),
-            Description = "Rent",
-            Amount = 1600m,
-            Type = TransactionType.Expense,
-            Date = new DateOnly(2026, 8, 3),
-        };
-
-        var generatedPaycheck = new ScheduledTransaction
-        {
-            Id = Guid.NewGuid(),
-            Description = "Paycheck",
-            Amount = 2500m,
-            Type = TransactionType.Income,
-            Date = new DateOnly(2026, 8, 7),
-        };
+        var generatedPaycheck = CreateScheduledTransaction(
+            "Paycheck",
+            2500m,
+            TransactionType.Income,
+            new DateOnly(2026, 8, 7)
+        );
 
         recurringTransactionServiceMock
-            .Setup(x => x.Generate(rent, from, through))
+            .Setup(x => x.Generate(rent, _from, _through))
             .Returns([generatedRent]);
 
         recurringTransactionServiceMock
-            .Setup(x => x.Generate(paycheck, from, through))
+            .Setup(x => x.Generate(paycheck, _from, _through))
             .Returns([generatedPaycheck]);
 
-        _sut.GenerateForecast(1000m, [], [rent, paycheck], from, through);
-
-        recurringTransactionServiceMock.Verify(x => x.Generate(rent, from, through), Times.Once);
+        _sut.GenerateForecast(
+            1000m,
+            [],
+            [rent, paycheck],
+            _from,
+            _through
+        );
 
         recurringTransactionServiceMock.Verify(
-            x => x.Generate(paycheck, from, through),
+            x => x.Generate(rent, _from, _through),
+            Times.Once
+        );
+
+        recurringTransactionServiceMock.Verify(
+            x => x.Generate(paycheck, _from, _through),
             Times.Once
         );
 
@@ -180,60 +175,47 @@ public class ForecastServiceTests
     [Test]
     public void GenerateForecast_ShouldOnlyIncludeScheduledTransactionsWithinForecastRange()
     {
-        var from = new DateOnly(2026, 8, 1);
-        var through = new DateOnly(2026, 8, 31);
+        var beforeRange = CreateScheduledTransaction(
+            "July Expense",
+            100m,
+            TransactionType.Expense,
+            new DateOnly(2026, 7, 31)
+        );
 
-        var beforeRange = new ScheduledTransaction
-        {
-            Id = Guid.NewGuid(),
-            Description = "July Expense",
-            Amount = 100m,
-            Type = TransactionType.Expense,
-            Date = new DateOnly(2026, 7, 31),
-        };
+        var onStartDate = CreateScheduledTransaction(
+            "Start Date Expense",
+            200m,
+            TransactionType.Expense,
+            _from
+        );
 
-        var onStartDate = new ScheduledTransaction
-        {
-            Id = Guid.NewGuid(),
-            Description = "Start Date Expense",
-            Amount = 200m,
-            Type = TransactionType.Expense,
-            Date = from,
-        };
+        var insideRange = CreateScheduledTransaction(
+            "August Expense",
+            300m,
+            TransactionType.Expense,
+            new DateOnly(2026, 8, 15)
+        );
 
-        var insideRange = new ScheduledTransaction
-        {
-            Id = Guid.NewGuid(),
-            Description = "August Expense",
-            Amount = 300m,
-            Type = TransactionType.Expense,
-            Date = new DateOnly(2026, 8, 15),
-        };
+        var onEndDate = CreateScheduledTransaction(
+            "End Date Expense",
+            400m,
+            TransactionType.Expense,
+            _through
+        );
 
-        var onEndDate = new ScheduledTransaction
-        {
-            Id = Guid.NewGuid(),
-            Description = "End Date Expense",
-            Amount = 400m,
-            Type = TransactionType.Expense,
-            Date = through,
-        };
-
-        var afterRange = new ScheduledTransaction
-        {
-            Id = Guid.NewGuid(),
-            Description = "September Expense",
-            Amount = 500m,
-            Type = TransactionType.Expense,
-            Date = new DateOnly(2026, 9, 1),
-        };
+        var afterRange = CreateScheduledTransaction(
+            "September Expense",
+            500m,
+            TransactionType.Expense,
+            new DateOnly(2026, 9, 1)
+        );
 
         _sut.GenerateForecast(
             1000m,
             [beforeRange, onStartDate, insideRange, onEndDate, afterRange],
             [],
-            from,
-            through
+            _from,
+            _through
         );
 
         projectionServiceMock.Verify(
@@ -267,10 +249,7 @@ public class ForecastServiceTests
     [Test]
     public void GenerateForecast_ShouldThrow_WhenScheduledTransactionsIsNull()
     {
-        var from = new DateOnly(2026, 8, 1);
-        var through = new DateOnly(2026, 8, 31);
-
-        var act = () => _sut.GenerateForecast(1000m, null!, [], from, through);
+        var act = () => _sut.GenerateForecast(1000m, null!, [], _from, _through);
 
         act.Should().Throw<ArgumentNullException>();
     }
@@ -278,11 +257,44 @@ public class ForecastServiceTests
     [Test]
     public void GenerateForecast_ShouldThrow_WhenRecurringTransactionsIsNull()
     {
-        var from = new DateOnly(2026, 8, 1);
-        var through = new DateOnly(2026, 8, 31);
-
-        var act = () => _sut.GenerateForecast(1000m, [], null!, from, through);
+        var act = () => _sut.GenerateForecast(1000m, [], null!, _from, _through);
 
         act.Should().Throw<ArgumentNullException>();
+    }
+
+    private static ScheduledTransaction CreateScheduledTransaction(
+        string description,
+        decimal amount,
+        TransactionType type,
+        DateOnly date
+    )
+    {
+        return new ScheduledTransaction
+        {
+            Id = Guid.NewGuid(),
+            Description = description,
+            Amount = amount,
+            Type = type,
+            Date = date,
+        };
+    }
+
+    private static RecurringTransaction CreateRecurringTransaction(
+        string description,
+        decimal amount,
+        TransactionType type,
+        RecurrenceFrequency frequency,
+        DateOnly startDate
+    )
+    {
+        return new RecurringTransaction
+        {
+            Id = Guid.NewGuid(),
+            Description = description,
+            Amount = amount,
+            Type = type,
+            Frequency = frequency,
+            StartDate = startDate,
+        };
     }
 }
