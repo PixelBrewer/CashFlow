@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Spectre.Console" Version="0.57.2" />
+    <PackageReference Include="Spectre.Console.Cli" Version="0.53.0" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -13,7 +14,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
     <AssemblyName>cashflow</AssemblyName>
     <Product>CashFlow</Product>
     <Description>A local-first CLI for importing and visualizing personal cash-flow data.</Description>

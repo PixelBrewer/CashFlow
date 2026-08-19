@@ -1,10 +1,9 @@
 namespace CashFlow.Tests.Services;
 
 using AwesomeAssertions;
-using Core.Enums;
-using Core.Models;
-using Core.Services;
-
+using CashFlow.Core.Enums;
+using CashFlow.Core.Models;
+using CashFlow.Core.Services;
 
 [TestFixture]
 public class ProjectionServiceTests
@@ -37,17 +36,16 @@ public class ProjectionServiceTests
     public void GenerateProjection_ShouldSubtractExpense()
     {
         // Arrange
-        var transactions = new[]
-        {
-            new ScheduledTransaction
+        var transactions =
+            new[]
             {
-                Id = Guid.NewGuid(),
-                Description = "Rent",
-                Date = new DateOnly(2026, 8, 3),
-                Amount = 1600m,
-                Type = TransactionType.Expense
-            }
-        };
+                CreateScheduledTransaction(
+                    "Rent",
+                    new DateOnly(2026, 8, 3),
+                    1600m,
+                    TransactionType.Expense
+                ),
+            };
 
         // Act
         var projection = _sut.GenerateProjection(3000m, transactions);
@@ -61,17 +59,16 @@ public class ProjectionServiceTests
     public void GenerateProjection_ShouldAddIncome()
     {
         // Arrange
-        var transactions = new[]
-        {
-            new ScheduledTransaction
+        var transactions =
+            new[]
             {
-                Id = Guid.NewGuid(),
-                Description = "Paycheck",
-                Date = new DateOnly(2026, 8, 12),
-                Amount = 2500m,
-                Type = TransactionType.Income
-            }
-        };
+                CreateScheduledTransaction(
+                    "Paycheck",
+                    new DateOnly(2026, 8, 12),
+                    2500m,
+                    TransactionType.Income
+                ),
+            };
 
         // Act
         var projection = _sut.GenerateProjection(1000m, transactions);
@@ -85,32 +82,28 @@ public class ProjectionServiceTests
     public void GenerateProjection_ShouldOrderTransactionsByDate()
     {
         // Arrange
-        var transactions = new[]
-        {
-            new ScheduledTransaction
+        var transactions =
+            new[]
             {
-                Id = Guid.NewGuid(),
-                Description = "Paycheck",
-                Date = new DateOnly(2026, 8, 12),
-                Amount = 2500m,
-                Type = TransactionType.Income
-            },
-            new ScheduledTransaction
-            {
-                Id = Guid.NewGuid(),
-                Description = "Rent",
-                Date = new DateOnly(2026, 8, 3),
-                Amount = 1600m,
-                Type = TransactionType.Expense
-            }
-        };
+                CreateScheduledTransaction(
+                    "Paycheck",
+                    new DateOnly(2026, 8, 12),
+                    2500m,
+                    TransactionType.Income
+                ),
+                CreateScheduledTransaction(
+                    "Rent",
+                    new DateOnly(2026, 8, 3),
+                    1600m,
+                    TransactionType.Expense
+                ),
+            };
 
         // Act
         var projection = _sut.GenerateProjection(3000m, transactions);
 
         // Assert
         projection.Entries.Should().HaveCount(2);
-
         projection.Entries[0].Transaction.Description.Should().Be("Rent");
         projection.Entries[1].Transaction.Description.Should().Be("Paycheck");
     }
@@ -119,33 +112,28 @@ public class ProjectionServiceTests
     public void GenerateProjection_ShouldCalculateRunningBalance()
     {
         // Arrange
-        var transactions = new[]
-        {
-            new ScheduledTransaction
+        var transactions =
+            new[]
             {
-                Id = Guid.NewGuid(),
-                Description = "Reimbursement",
-                Date = new DateOnly(2026, 8, 1),
-                Amount = 115m,
-                Type = TransactionType.Income
-            },
-            new ScheduledTransaction
-            {
-                Id = Guid.NewGuid(),
-                Description = "Rent",
-                Date = new DateOnly(2026, 8, 3),
-                Amount = 1600m,
-                Type = TransactionType.Expense
-            },
-            new ScheduledTransaction
-            {
-                Id = Guid.NewGuid(),
-                Description = "Pay Advance",
-                Date = new DateOnly(2026, 8, 12),
-                Amount = 2500m,
-                Type = TransactionType.Income
-            }
-        };
+                CreateScheduledTransaction(
+                    "Reimbursement",
+                    new DateOnly(2026, 8, 1),
+                    115m,
+                    TransactionType.Income
+                ),
+                CreateScheduledTransaction(
+                    "Rent",
+                    new DateOnly(2026, 8, 3),
+                    1600m,
+                    TransactionType.Expense
+                ),
+                CreateScheduledTransaction(
+                    "Pay Advance",
+                    new DateOnly(2026, 8, 12),
+                    2500m,
+                    TransactionType.Income
+                ),
+            };
 
         // Act
         var projection = _sut.GenerateProjection(3200m, transactions);
@@ -155,7 +143,8 @@ public class ProjectionServiceTests
         projection.EndingBalance.Should().Be(4215m);
         projection.LowestBalance.Should().Be(1715m);
 
-        projection.Entries.Select(x => x.BalanceAfterTransaction)
+        projection
+            .Entries.Select(entry => entry.BalanceAfterTransaction)
             .Should()
             .Equal(3315m, 1715m, 4215m);
     }
@@ -164,25 +153,40 @@ public class ProjectionServiceTests
     public void GenerateProjection_ShouldThrow_WhenAmountIsNegative()
     {
         // Arrange
-        var transactions = new[]
-        {
-            new ScheduledTransaction
+        var transactions =
+            new[]
             {
-                Id = Guid.NewGuid(),
-                Description = "Invalid",
-                Date = new DateOnly(2026, 8, 3),
-                Amount = -10m,
-                Type = TransactionType.Expense
-            }
-        };
+                CreateScheduledTransaction(
+                    "Invalid",
+                    new DateOnly(2026, 8, 3),
+                    -10m,
+                    TransactionType.Expense
+                ),
+            };
 
         // Act
-        Action action = () =>
-            _sut.GenerateProjection(1000m, transactions);
+        Action action = () => _sut.GenerateProjection(1000m, transactions);
 
         // Assert
         action.Should()
             .Throw<ArgumentException>()
             .WithMessage("*negative*");
+    }
+
+    private static ScheduledTransaction CreateScheduledTransaction(
+        string description,
+        DateOnly date,
+        decimal amount,
+        TransactionType type
+    )
+    {
+        return new ScheduledTransaction
+        {
+            Id = Guid.NewGuid(),
+            Description = description,
+            Date = date,
+            Amount = amount,
+            Type = type,
+        };
     }
 }

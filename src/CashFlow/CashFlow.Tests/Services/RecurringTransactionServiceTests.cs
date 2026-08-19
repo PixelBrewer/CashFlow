@@ -19,15 +19,13 @@ public class RecurringTransactionServiceTests
     [Test]
     public void Generate_ShouldCreateMonthlyTransactionsWithinRange()
     {
-        var recurringTransaction = new RecurringTransaction
-        {
-            Id = Guid.NewGuid(),
-            Description = "Rent",
-            Amount = 1600m,
-            Type = TransactionType.Expense,
-            Frequency = RecurrenceFrequency.Monthly,
-            StartDate = new DateOnly(2026, 8, 3),
-        };
+        var recurringTransaction = CreateRecurringTransaction(
+            "Rent",
+            1600m,
+            TransactionType.Expense,
+            RecurrenceFrequency.Monthly,
+            new DateOnly(2026, 8, 3)
+        );
 
         var result = _sut.Generate(
             recurringTransaction,
@@ -36,7 +34,7 @@ public class RecurringTransactionServiceTests
         );
 
         result
-            .Select(x => x.Date)
+            .Select(transaction => transaction.Date)
             .Should()
             .Equal(
                 new DateOnly(2026, 8, 3),
@@ -49,15 +47,13 @@ public class RecurringTransactionServiceTests
     [Test]
     public void Generate_ShouldSkipTransactionsBeforeRequestRange()
     {
-        var recurringTransaction = new RecurringTransaction
-        {
-            Id = Guid.NewGuid(),
-            Description = "Rent",
-            Amount = 1600m,
-            Type = TransactionType.Expense,
-            Frequency = RecurrenceFrequency.Monthly,
-            StartDate = new DateOnly(2026, 6, 3),
-        };
+        var recurringTransaction = CreateRecurringTransaction(
+            "Rent",
+            1600m,
+            TransactionType.Expense,
+            RecurrenceFrequency.Monthly,
+            new DateOnly(2026, 6, 3)
+        );
 
         var result = _sut.Generate(
             recurringTransaction,
@@ -66,23 +62,25 @@ public class RecurringTransactionServiceTests
         );
 
         result
-            .Select(x => x.Date)
+            .Select(transaction => transaction.Date)
             .Should()
-            .Equal(new DateOnly(2026, 8, 3), new DateOnly(2026, 9, 3), new DateOnly(2026, 10, 3));
+            .Equal(
+                new DateOnly(2026, 8, 3),
+                new DateOnly(2026, 9, 3),
+                new DateOnly(2026, 10, 3)
+            );
     }
 
     [Test]
     public void Generate_ShouldPreserveEndOfMonthRecurrence()
     {
-        var recurringTransaction = new RecurringTransaction
-        {
-            Id = Guid.NewGuid(),
-            Description = "Credit Card",
-            Amount = 500m,
-            Type = TransactionType.Expense,
-            Frequency = RecurrenceFrequency.Monthly,
-            StartDate = new DateOnly(2026, 1, 31),
-        };
+        var recurringTransaction = CreateRecurringTransaction(
+            "Credit Card",
+            500m,
+            TransactionType.Expense,
+            RecurrenceFrequency.Monthly,
+            new DateOnly(2026, 1, 31)
+        );
 
         var result = _sut.Generate(
             recurringTransaction,
@@ -91,7 +89,7 @@ public class RecurringTransactionServiceTests
         );
 
         result
-            .Select(x => x.Date)
+            .Select(transaction => transaction.Date)
             .Should()
             .Equal(
                 new DateOnly(2026, 1, 31),
@@ -104,15 +102,13 @@ public class RecurringTransactionServiceTests
     [Test]
     public void Generate_ShouldReturnEmpty_WhenTransactionStartsAfterRange()
     {
-        var recurringTransaction = new RecurringTransaction
-        {
-            Id = Guid.NewGuid(),
-            Description = "Rent",
-            Amount = 1600m,
-            Type = TransactionType.Expense,
-            Frequency = RecurrenceFrequency.Monthly,
-            StartDate = new DateOnly(2026, 12, 3),
-        };
+        var recurringTransaction = CreateRecurringTransaction(
+            "Rent",
+            1600m,
+            TransactionType.Expense,
+            RecurrenceFrequency.Monthly,
+            new DateOnly(2026, 12, 3)
+        );
 
         var result = _sut.Generate(
             recurringTransaction,
@@ -126,15 +122,13 @@ public class RecurringTransactionServiceTests
     [Test]
     public void Generate_ShouldThrow_WhenFromIsAfterThrough()
     {
-        var recurringTransaction = new RecurringTransaction
-        {
-            Id = Guid.NewGuid(),
-            Description = "Rent",
-            Amount = 1600m,
-            Type = TransactionType.Expense,
-            Frequency = RecurrenceFrequency.Monthly,
-            StartDate = new DateOnly(2026, 8, 3),
-        };
+        var recurringTransaction = CreateRecurringTransaction(
+            "Rent",
+            1600m,
+            TransactionType.Expense,
+            RecurrenceFrequency.Monthly,
+            new DateOnly(2026, 8, 3)
+        );
 
         var act = () =>
             _sut.Generate(
@@ -149,15 +143,13 @@ public class RecurringTransactionServiceTests
     [Test]
     public void Generate_ShouldCreateWeeklyTransactionsWithinRange()
     {
-        var recurringTransaction = new RecurringTransaction
-        {
-            Id = Guid.NewGuid(),
-            Description = "Weekly Expense",
-            Amount = 50m,
-            Type = TransactionType.Expense,
-            Frequency = RecurrenceFrequency.Weekly,
-            StartDate = new DateOnly(2026, 8, 3),
-        };
+        var recurringTransaction = CreateRecurringTransaction(
+            "Weekly Expense",
+            50m,
+            TransactionType.Expense,
+            RecurrenceFrequency.Weekly,
+            new DateOnly(2026, 8, 3)
+        );
 
         var result = _sut.Generate(
             recurringTransaction,
@@ -166,7 +158,7 @@ public class RecurringTransactionServiceTests
         );
 
         result
-            .Select(x => x.Date)
+            .Select(transaction => transaction.Date)
             .Should()
             .Equal(
                 new DateOnly(2026, 8, 3),
@@ -179,15 +171,13 @@ public class RecurringTransactionServiceTests
     [Test]
     public void Generate_ShouldCreateBiweeklyTransactionsWithinRange()
     {
-        var recurringTransaction = new RecurringTransaction
-        {
-            Id = Guid.NewGuid(),
-            Description = "Paycheck",
-            Amount = 2500m,
-            Type = TransactionType.Income,
-            Frequency = RecurrenceFrequency.Biweekly,
-            StartDate = new DateOnly(2026, 8, 7),
-        };
+        var recurringTransaction = CreateRecurringTransaction(
+            "Paycheck",
+            2500m,
+            TransactionType.Income,
+            RecurrenceFrequency.Biweekly,
+            new DateOnly(2026, 8, 7)
+        );
 
         var result = _sut.Generate(
             recurringTransaction,
@@ -196,8 +186,31 @@ public class RecurringTransactionServiceTests
         );
 
         result
-            .Select(x => x.Date)
+            .Select(transaction => transaction.Date)
             .Should()
-            .Equal(new DateOnly(2026, 8, 7), new DateOnly(2026, 8, 21), new DateOnly(2026, 9, 4));
+            .Equal(
+                new DateOnly(2026, 8, 7),
+                new DateOnly(2026, 8, 21),
+                new DateOnly(2026, 9, 4)
+            );
+    }
+
+    private static RecurringTransaction CreateRecurringTransaction(
+        string description,
+        decimal amount,
+        TransactionType type,
+        RecurrenceFrequency frequency,
+        DateOnly startDate
+    )
+    {
+        return new RecurringTransaction
+        {
+            Id = Guid.NewGuid(),
+            Description = description,
+            Amount = amount,
+            Type = type,
+            Frequency = frequency,
+            StartDate = startDate,
+        };
     }
 }

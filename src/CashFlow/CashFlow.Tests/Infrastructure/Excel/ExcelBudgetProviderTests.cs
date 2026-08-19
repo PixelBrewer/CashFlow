@@ -28,18 +28,9 @@ public class ExcelBudgetProviderTests
     [Test]
     public void GetBudget_ShouldMapMonthlyBillToRecurringTransaction()
     {
-        using (var workbook = new XLWorkbook())
-        {
-            var worksheet = workbook.AddWorksheet("Sheet1");
-
-            AddBudgetHeaders(worksheet);
-
-            worksheet.Cell("A3").Value = "20th of the month";
-            worksheet.Cell("B3").Value = "SoFi Personal Loan";
-            worksheet.Cell("F3").Value = 296.82m;
-
-            workbook.SaveAs(_filePath);
-        }
+        CreateWorkbook(worksheet =>
+            AddBill(worksheet, 3, "20th of the month", "SoFi Personal Loan", 296.82m)
+        );
 
         var provider = new ExcelBudgetProvider(_filePath);
 
@@ -61,18 +52,9 @@ public class ExcelBudgetProviderTests
     [Test]
     public void GetBudget_ShouldUseNextMonth_WhenMonthlyDueDateHasPassed()
     {
-        using (var workbook = new XLWorkbook())
-        {
-            var worksheet = workbook.AddWorksheet("Sheet1");
-
-            AddBudgetHeaders(worksheet);
-
-            worksheet.Cell("A3").Value = "5th of the month";
-            worksheet.Cell("B3").Value = "SoFi Personal Loan";
-            worksheet.Cell("F3").Value = 296.82m;
-
-            workbook.SaveAs(_filePath);
-        }
+        CreateWorkbook(worksheet =>
+            AddBill(worksheet, 3, "5th of the month", "SoFi Personal Loan", 296.82m)
+        );
 
         var provider = new ExcelBudgetProvider(_filePath);
 
@@ -86,26 +68,12 @@ public class ExcelBudgetProviderTests
     [Test]
     public void GetBudget_ShouldMapMultipleMonthlyBills()
     {
-        using (var workbook = new XLWorkbook())
+        CreateWorkbook(worksheet =>
         {
-            var worksheet = workbook.AddWorksheet("Sheet1");
-
-            AddBudgetHeaders(worksheet);
-
-            worksheet.Cell("A3").Value = "5th of the month";
-            worksheet.Cell("B3").Value = "SoFi Personal Loan";
-            worksheet.Cell("F3").Value = 296.82m;
-
-            worksheet.Cell("A4").Value = "15th of the month";
-            worksheet.Cell("B4").Value = "Internet";
-            worksheet.Cell("F4").Value = 70.15m;
-
-            worksheet.Cell("A5").Value = "20th of the month";
-            worksheet.Cell("B5").Value = "Car Insurance";
-            worksheet.Cell("F5").Value = 120.09m;
-
-            workbook.SaveAs(_filePath);
-        }
+            AddBill(worksheet, 3, "5th of the month", "SoFi Personal Loan", 296.82m);
+            AddBill(worksheet, 4, "15th of the month", "Internet", 70.15m);
+            AddBill(worksheet, 5, "20th of the month", "Car Insurance", 120.09m);
+        });
 
         var provider = new ExcelBudgetProvider(_filePath);
 
@@ -143,24 +111,16 @@ public class ExcelBudgetProviderTests
     [Test]
     public void GetBudget_ShouldSkipRowsThatAreNotValidBills()
     {
-        using (var workbook = new XLWorkbook())
+        CreateWorkbook(worksheet =>
         {
-            var worksheet = workbook.AddWorksheet("Sheet1");
-
-            AddBudgetHeaders(worksheet);
-
-            worksheet.Cell("A3").Value = "5th of the month";
-            worksheet.Cell("B3").Value = "SoFi Personal Loan";
-            worksheet.Cell("F3").Value = 296.82m;
+            AddBill(worksheet, 3, "5th of the month", "SoFi Personal Loan", 296.82m);
 
             worksheet.Cell("A4").Value = "15th of the month";
             worksheet.Cell("B4").Value = "Paused Investment";
 
             worksheet.Cell("A5").Value = "20th of the month";
             worksheet.Cell("F5").Value = 50m;
-
-            workbook.SaveAs(_filePath);
-        }
+        });
 
         var provider = new ExcelBudgetProvider(_filePath);
 
@@ -174,27 +134,17 @@ public class ExcelBudgetProviderTests
     [Test]
     public void GetBudget_ShouldStopReadingBills_WhenBlankRowIsReached()
     {
-        using (var workbook = new XLWorkbook())
+        CreateWorkbook(worksheet =>
         {
-            var worksheet = workbook.AddWorksheet("Sheet1");
-
-            AddBudgetHeaders(worksheet);
-
-            worksheet.Cell("A3").Value = "5th of the month";
-            worksheet.Cell("B3").Value = "SoFi Personal Loan";
-            worksheet.Cell("F3").Value = 296.82m;
+            AddBill(worksheet, 3, "5th of the month", "SoFi Personal Loan", 296.82m);
 
             // End of monthly bill section.
             worksheet.Cell("A4").Value = "";
             worksheet.Cell("B4").Value = "";
 
             // Represents another section later in the worksheet.
-            worksheet.Cell("A5").Value = "10th of the month";
-            worksheet.Cell("B5").Value = "Should Not Be Imported";
-            worksheet.Cell("F5").Value = 999m;
-
-            workbook.SaveAs(_filePath);
-        }
+            AddBill(worksheet, 5, "10th of the month", "Should Not Be Imported", 999m);
+        });
 
         var provider = new ExcelBudgetProvider(_filePath);
 
@@ -208,20 +158,11 @@ public class ExcelBudgetProviderTests
     [Test]
     public void GetBudget_ShouldFindBillsHeaderRow_WhenHeaderIsNotFirstRow()
     {
-        using (var workbook = new XLWorkbook())
+        CreateWorkbook(worksheet =>
         {
-            var worksheet = workbook.AddWorksheet("Sheet1");
-
             worksheet.Cell("B1").Value = "Monthly bills and debts";
-
-            AddBudgetHeaders(worksheet);
-
-            worksheet.Cell("A3").Value = "12th of the month";
-            worksheet.Cell("B3").Value = "Internet";
-            worksheet.Cell("F3").Value = 70.15m;
-
-            workbook.SaveAs(_filePath);
-        }
+            AddBill(worksheet, 3, "12th of the month", "Internet", 70.15m);
+        });
 
         var provider = new ExcelBudgetProvider(_filePath);
 
@@ -236,18 +177,9 @@ public class ExcelBudgetProviderTests
     [Test]
     public void GetBudget_ShouldMapLastDayOfMonth()
     {
-        using (var workbook = new XLWorkbook())
-        {
-            var worksheet = workbook.AddWorksheet("Sheet1");
-
-            AddBudgetHeaders(worksheet);
-
-            worksheet.Cell("A3").Value = "Last day of the month";
-            worksheet.Cell("B3").Value = "Monthly Bill";
-            worksheet.Cell("F3").Value = 100m;
-
-            workbook.SaveAs(_filePath);
-        }
+        CreateWorkbook(worksheet =>
+            AddBill(worksheet, 3, "Last day of the month", "Monthly Bill", 100m)
+        );
 
         var provider = new ExcelBudgetProvider(_filePath);
 
@@ -261,18 +193,9 @@ public class ExcelBudgetProviderTests
     [Test]
     public void GetBudget_ShouldClampDayOfMonth_WhenMonthIsShorter()
     {
-        using (var workbook = new XLWorkbook())
-        {
-            var worksheet = workbook.AddWorksheet("Sheet1");
-
-            AddBudgetHeaders(worksheet);
-
-            worksheet.Cell("A3").Value = "31st of the month";
-            worksheet.Cell("B3").Value = "Month End Bill";
-            worksheet.Cell("F3").Value = 50m;
-
-            workbook.SaveAs(_filePath);
-        }
+        CreateWorkbook(worksheet =>
+            AddBill(worksheet, 3, "31st of the month", "Month End Bill", 50m)
+        );
 
         var provider = new ExcelBudgetProvider(_filePath);
 
@@ -293,5 +216,27 @@ public class ExcelBudgetProviderTests
         worksheet.Cell("D2").Value = "Outstanding balance";
         worksheet.Cell("E2").Value = "Minimum Monthly";
         worksheet.Cell("F2").Value = "Actual payment Monthly";
+    }
+
+    private void CreateWorkbook(Action<IXLWorksheet> configureWorksheet)
+    {
+        using var workbook = new XLWorkbook();
+        var worksheet = workbook.AddWorksheet("Sheet1");
+        AddBudgetHeaders(worksheet);
+        configureWorksheet(worksheet);
+        workbook.SaveAs(_filePath);
+    }
+
+    private static void AddBill(
+        IXLWorksheet worksheet,
+        int row,
+        string dueDate,
+        string name,
+        decimal amount
+    )
+    {
+        worksheet.Cell(row, 1).Value = dueDate;
+        worksheet.Cell(row, 2).Value = name;
+        worksheet.Cell(row, 6).Value = amount;
     }
 }

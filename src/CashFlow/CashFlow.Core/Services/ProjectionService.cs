@@ -1,8 +1,7 @@
-using CashFlow.Core.Enums;
-
 namespace CashFlow.Core.Services;
 
-using Models;
+using CashFlow.Core.Enums;
+using CashFlow.Core.Models;
 
 public interface IProjectionService
 {
@@ -20,10 +19,9 @@ public class ProjectionService : IProjectionService
     )
     {
         ArgumentNullException.ThrowIfNull(transactions);
-        var orderedTransactions = transactions
-            .OrderBy(transaction => transaction.Date)
-            .ThenBy(transaction => transaction.Description)
-            .ToList();
+
+        var orderedTransactions = OrderTransactions(transactions);
+
         var runningBalance = openingBalance;
         var lowestBalance = openingBalance;
         var entries = new List<Entry>();
@@ -31,22 +29,25 @@ public class ProjectionService : IProjectionService
         foreach (var transaction in orderedTransactions)
         {
             ValidateTransaction(transaction);
-            runningBalance = transaction.Type switch
-            {
-                TransactionType.Income => runningBalance + transaction.Amount,
 
-                TransactionType.Expense => runningBalance - transaction.Amount,
-                _ => throw new ArgumentOutOfRangeException(
-                    nameof(transactions),
-                    transaction.Type,
-                    "Transaction contains an invalid transaction type."
-                ),
-            };
-            lowestBalance = Math.Min(lowestBalance, runningBalance);
+            runningBalance = ApplyTransaction(
+                runningBalance,
+                transaction
+            );
+
+            lowestBalance = Math.Min(
+                lowestBalance,
+                runningBalance
+            );
+
             entries.Add(
-                new Entry { Transaction = transaction, BalanceAfterTransaction = runningBalance }
+                CreateEntry(
+                    transaction,
+                    runningBalance
+                )
             );
         }
+
         return new Projection
         {
             OpeningBalance = openingBalance,
@@ -56,12 +57,61 @@ public class ProjectionService : IProjectionService
         };
     }
 
-    private static void ValidateTransaction(ScheduledTransaction transaction)
+    private static IReadOnlyList<ScheduledTransaction> OrderTransactions(
+        IEnumerable<ScheduledTransaction> transactions
+    )
+    {
+        return transactions
+            .OrderBy(transaction => transaction.Date)
+            .ThenBy(transaction => transaction.Description)
+            .ToList();
+    }
+
+    private static decimal ApplyTransaction(
+        decimal balance,
+        ScheduledTransaction transaction
+    )
+    {
+        return transaction.Type switch
+        {
+            TransactionType.Income =>
+                balance + transaction.Amount,
+
+            TransactionType.Expense =>
+                balance - transaction.Amount,
+
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(transaction),
+                transaction.Type,
+                "Transaction contains an invalid transaction type."
+            ),
+        };
+    }
+
+    private static Entry CreateEntry(
+        ScheduledTransaction transaction,
+        decimal balance
+    )
+    {
+        return new Entry
+        {
+            Transaction = transaction,
+            BalanceAfterTransaction = balance,
+        };
+    }
+
+    private static void ValidateTransaction(
+        ScheduledTransaction transaction
+    )
     {
         ArgumentNullException.ThrowIfNull(transaction);
+
         if (string.IsNullOrWhiteSpace(transaction.Description))
         {
-            throw new ArgumentException("Transaction description is required", nameof(transaction));
+            throw new ArgumentException(
+                "Transaction description is required",
+                nameof(transaction)
+            );
         }
 
         if (transaction.Amount < 0)

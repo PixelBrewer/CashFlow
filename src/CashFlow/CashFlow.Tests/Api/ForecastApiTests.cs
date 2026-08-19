@@ -25,44 +25,36 @@ public class ForecastApiTests
 
             ScheduledTransactions =
             [
-                new ScheduledTransaction
-                {
-                    Id = Guid.NewGuid(),
-                    Description = "Reimbursement",
-                    Date = new DateOnly(2026, 8, 1),
-                    Amount = 115m,
-                    Type = TransactionType.Income,
-                },
-                new ScheduledTransaction
-                {
-                    Id = Guid.NewGuid(),
-                    Description = "Car Repair",
-                    Date = new DateOnly(2026, 8, 19),
-                    Amount = 450m,
-                    Type = TransactionType.Expense,
-                },
+                CreateScheduledTransaction(
+                    "Reimbursement",
+                    new DateOnly(2026, 8, 1),
+                    115m,
+                    TransactionType.Income
+                ),
+                CreateScheduledTransaction(
+                    "Car Repair",
+                    new DateOnly(2026, 8, 19),
+                    450m,
+                    TransactionType.Expense
+                ),
             ],
 
             RecurringTransactions =
             [
-                new RecurringTransaction
-                {
-                    Id = Guid.NewGuid(),
-                    Description = "Rent",
-                    Amount = 1600m,
-                    Type = TransactionType.Expense,
-                    Frequency = RecurrenceFrequency.Monthly,
-                    StartDate = new DateOnly(2026, 8, 3),
-                },
-                new RecurringTransaction
-                {
-                    Id = Guid.NewGuid(),
-                    Description = "Paycheck",
-                    Amount = 2500m,
-                    Type = TransactionType.Income,
-                    Frequency = RecurrenceFrequency.Biweekly,
-                    StartDate = new DateOnly(2026, 8, 7),
-                },
+                CreateRecurringTransaction(
+                    "Rent",
+                    1600m,
+                    TransactionType.Expense,
+                    RecurrenceFrequency.Monthly,
+                    new DateOnly(2026, 8, 3)
+                ),
+                CreateRecurringTransaction(
+                    "Paycheck",
+                    2500m,
+                    TransactionType.Income,
+                    RecurrenceFrequency.Biweekly,
+                    new DateOnly(2026, 8, 7)
+                ),
             ],
         };
 
@@ -78,5 +70,41 @@ public class ForecastApiTests
         projection.LowestBalance.Should().Be(1715m);
         projection.Entries.Should().HaveCount(5);
         projection.Entries.Should().NotBeEmpty();
+    }
+
+    private static ScheduledTransaction CreateScheduledTransaction(
+        string description,
+        DateOnly date,
+        decimal amount,
+        TransactionType type
+    )
+    {
+        return new ScheduledTransaction
+        {
+            Id = Guid.NewGuid(),
+            Description = description,
+            Date = date,
+            Amount = amount,
+            Type = type,
+        };
+    }
+
+    private static RecurringTransaction CreateRecurringTransaction(
+        string description,
+        decimal amount,
+        TransactionType type,
+        RecurrenceFrequency frequency,
+        DateOnly startDate
+    )
+    {
+        return new RecurringTransaction
+        {
+            Id = Guid.NewGuid(),
+            Description = description,
+            Amount = amount,
+            Type = type,
+            Frequency = frequency,
+            StartDate = startDate,
+        };
     }
 }
